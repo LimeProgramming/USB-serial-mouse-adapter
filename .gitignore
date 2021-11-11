@@ -1,0 +1,5 @@
+.ccls-cache
+build/
+Debug/
+.vscode/
+.DS_Store
