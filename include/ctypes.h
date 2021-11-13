@@ -5,10 +5,10 @@
 
 // Mouse tracking speed modifier
 enum LED_STATE {
-	LED_OFF = 0,	
-	LED_ON = 1, 	
-	LED_UNKNOWN_DEVICE = 2,
-	LED_UNKNOWN_DEVICE_1 = 3,
+  LED_OFF = 0,  
+  LED_ON = 1,   
+  LED_UNKNOWN_DEVICE = 2,
+  LED_UNKNOWN_DEVICE_1 = 3,
     LED_SERIAL_CONNECTED = 4,
     LED_SERIAL_CONNECTED_1 = 5,
     LED_SERIAL_DISCONNECTED = 6,
@@ -17,17 +17,17 @@ enum LED_STATE {
 
 // Mouse tracking speed modifier
 enum MO_SPEED {
-	SPEED100 = 0,	// 100% speed
-	SPEED75 = 1, 	// 75% speed
-	SPEED50 = 2,	// 50% speed 
-	SPEED25 = 3		// 50% speed 
+  SPEED100 = 0, // 100% speed
+  SPEED75 = 1,  // 75% speed
+  SPEED50 = 2,  // 50% speed 
+  SPEED25 = 3   // 50% speed 
 };
 
 // Mouse Type enum
 enum MO_TYPE {
-	TWOBTN = 0,		// MS Two Button
-	THREEBTN = 1, 	// Logitech
-	WHEELBTN = 2	// MS Wheel
+  TWOBTN = 0,   // MS Two Button
+  THREEBTN = 1,   // Logitech
+  WHEELBTN = 2  // MS Wheel
 };
 
 // States of mouse init request from PC

@@ -5,7 +5,7 @@
 
 
 /*---------------------------------------*/
-//			   	       UTILS                 //
+//                 UTILS                 //
 /*---------------------------------------*/
 
 int constrain(int value, int8_t min, int8_t max) {
@@ -19,7 +19,7 @@ void init_pinheader(uint pin)
 {
   gpio_init(pin); 
   gpio_set_dir(pin, GPIO_IN);
-	gpio_pull_up(pin);
+  gpio_pull_up(pin);
 }
 
 // Configure GPIO to Power an LED
@@ -34,7 +34,7 @@ void machine_reboot()
 {
   watchdog_reboot(0, SRAM_END, 0);
   for (;;) { __wfi(); }
-	return;
+  return;
 }
 
 
