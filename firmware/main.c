@@ -12,12 +12,12 @@
 #define DEBUG true          // Debug Flag for things
 
 // Mouse Option Pins
-#define MO_25SPEED 22       // 25% speed
-#define MO_50SPEED 21       // 50% speed
-#define MO_75SPEED 20       // 75% speed
-#define MO_WHEEL 19         // MS Wheel
-#define MO_THREEBTN 18      // LOGITECH
-#define MO_7N2 17           // Compatibility with serial controllers which expect 8+1 bits format
+#define MO_THREEBTN 9       // LOGITECH     | Dip Switch 1
+#define MO_WHEEL 10          // MS Wheel     | Dip Switch 2
+#define MO_75SPEED 11       // 75% speed    | Dip Switch 3  | With Dip 3 + 4 depressed will set mouse speed to 25%
+#define MO_50SPEED 12       // 50% speed    | Dip Switch 4  | With Dip 3 + 4 depressed will set mouse speed to 25%
+#define MO_7N2 13           // Compatibility with serial controllers which expect 8+1 bits format   | Dip Switch 5
+#define MO_RESERVERD 14     // Reserved for future use  | Dip Switch 6
 
 // LEDS 
 #define LED_PWR 2
@@ -299,24 +299,32 @@ void post_serial_mouse()
 //          Mouse Settings Stuff         //
 /*---------------------------------------*/
 
-// Updates Mouse settings from the headers.
-void setMouseOptions()
-{   
-    // Configure Travel Rate Divider settings
-    if      ( !gpio_get(MO_25SPEED) )   { mouse_data.speed = SPEED25; }
-    else if ( !gpio_get(MO_50SPEED) )   { mouse_data.speed = SPEED50; }
-    else if ( !gpio_get(MO_75SPEED) )   { mouse_data.speed = SPEED75; }
-    else                                { mouse_data.speed = SPEED100; }
+/*
+::TODO::
+I do want to have mouse type hot changeable but I just have to sit and experiment with it. 
+Hitting reset it fine for now
+*/
 
-    // Configure mouse type
+// Sets Mouse Speed from the headers.
+void setMouseType()
+{   
     if      ( !gpio_get(MO_WHEEL) )     { mouse_data.type = WHEELBTN; }
     else if ( !gpio_get(MO_THREEBTN) )  { mouse_data.type = THREEBTN; }
     else                                { mouse_data.type = TWOBTN; }
 }
-    
+
+// Updates Mouse Travel Rate Divider from the headers.
+void setMouseSpeed()
+{   
+    if      ( !gpio_get(MO_75SPEED) && !gpio_get(MO_50SPEED) )  { mouse_data.speed = SPEED25; }
+    else if ( !gpio_get(MO_50SPEED) )                           { mouse_data.speed = SPEED50; }
+    else if ( !gpio_get(MO_75SPEED) )                           { mouse_data.speed = SPEED75; }
+    else                                                        { mouse_data.speed = SPEED100; }
+}
+
 /*
 I spent a bit of time trying to figure out the simplest way to have mouse settings updatable without restarting the pi pico.
-I could have just called setMouseOptions() in the main loop all the time but that felt wasteful.
+I could have just called setMouseSpeed() in the main loop all the time but that felt wasteful.
 Debounce in a gpio_callback doesn't work well, give it a Google, some fellow tried it and it was spotty.
 I implemented a hardware debounce but decided against it, since it made the final PCB bigger for something not integral. 
 
@@ -331,7 +339,7 @@ volatile bool MO_IRQ_TRIGGERED = false;
 
 int64_t MO_alarm_callback(alarm_id_t id, void *user_data)
 {
-    setMouseOptions();                          // Update Mouse Options
+    setMouseSpeed();                          // Update Mouse Options
     MO_IRQ_TRIGGERED = false;                   // Unset IRQ Bool
     return 0;                                   // Ret 0
 }
@@ -383,17 +391,26 @@ int main(void)
     //              Mouse Options            //
     /*---------------------------------------*/
 
-    // 25% Travel Rate Pin | 50% Travel Rate Pin | 75% Travel Rate Pin | Three BTN Type Pin | Mouse Wheel Type Pin 
-    int MO_arr[5] = { MO_25SPEED, MO_50SPEED, MO_75SPEED, MO_WHEEL, MO_THREEBTN };
+    // Three BTN Type Pin | Mouse Wheel Type Pin 
+    init_pinheader(MO_WHEEL);
+    init_pinheader(MO_THREEBTN);
 
-    for (short i = 0; i < 5; i++) {     // Set up Mouse Options Pins
-        init_pinheader(MO_arr[i]);
-        gpio_set_irq_enabled_with_callback(MO_arr[i], GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &MO_gpio_callback);
-    }
+    setMouseType();
+    
+    // 50% Travel Rate Pin | 75% Travel Rate Pin 
+    init_pinheader(MO_50SPEED);
+    init_pinheader(MO_75SPEED);
+    gpio_set_irq_enabled_with_callback(MO_50SPEED, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &MO_gpio_callback);
+    gpio_set_irq_enabled_with_callback(MO_75SPEED, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &MO_gpio_callback);
 
-    setMouseOptions();              // Configure Mouse settings from cold boot 
-    init_pinheader(MO_7N2);         // Configure Awkward Compatibility Pin Header
+    setMouseSpeed();
+
+    // Configure Awkward Compatibility Pin Header
+    init_pinheader(MO_7N2);         
     gpio_set_irq_enabled_with_callback(MO_7N2, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &SB_gpio_callback);
+
+    // Configure Reserved pin ---- Since you've read this far down, this pin is reserved for higher Baud Rate setting. If it even works.
+    init_pinheader(MO_RESERVERD);   
     
     /*---------------------------------------*/
     //              UART STUFF               //
