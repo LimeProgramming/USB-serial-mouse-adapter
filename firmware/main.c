@@ -9,11 +9,11 @@
 #include "include/ctypes.h"
 #include "include/utils.h"
 
-#define DEBUG true          // Debug Flag for things
+#define DEBUG false          // Debug Flag for things
 
 // Mouse Option Pins
 #define MO_THREEBTN 9       // LOGITECH     | Dip Switch 1
-#define MO_WHEEL 10          // MS Wheel     | Dip Switch 2
+#define MO_WHEEL 10         // MS Wheel     | Dip Switch 2
 #define MO_75SPEED 11       // 75% speed    | Dip Switch 3  | With Dip 3 + 4 depressed will set mouse speed to 25%
 #define MO_50SPEED 12       // 50% speed    | Dip Switch 4  | With Dip 3 + 4 depressed will set mouse speed to 25%
 #define MO_7N2 13           // Compatibility with serial controllers which expect 8+1 bits format   | Dip Switch 5
@@ -29,6 +29,7 @@
 #define UART_TX_PIN 4       // UART1 TX --> MAX232 pin 11
 #define UART_RX_PIN 5       // UART1 RX --> MAX232 pin 12
 #define UART_CTS_PIN 6      // CTS      --> MAX232 pin 9
+#define UART_RTS_PIN 7      // RTS      --> MAX232 pin 10
 
 /* ---------------------------------------------------------- */
 /*  Numbers for Serial Speed and Delay times
@@ -42,11 +43,11 @@
     SERIALDELAY = (((7500 * (BAUD_RATE / 1200)) * NumberOfBytes) + TXWIGGLEROOM )
 /* ---------------------------------------------------------- */
 
-static uint32_t TXWIGGLEROOM    = 0;        // This is for adding a bit of padding to the serial delays, shouldn't be needed but some controllers are awkward.
-static uint32_t txtimer_target;             // Actual time between the sending of serial packets, calculated on startup.
-static uint32_t SERIALDELAY_1B;             // One Byte Delay Time, calculated on startup.
-static uint32_t SERIALDELAY_3B;             // Three Byte Delay Time, calculated on startup.
-static uint32_t SERIALDELAY_4B;             // Four Byte Delay Time, calculated on startup.
+static int32_t TXWIGGLEROOM    = 0; // This is for adding a bit of padding to the serial delays, shouldn't be needed but some controllers are awkward.
+//static absolute_time_t txtimer_target;      // Actual time between the sending of serial packets, calculated on startup.
+static int32_t SERIALDELAY_1B;      // One Byte Delay Time, calculated on startup.
+static int32_t SERIALDELAY_3B;      // Three Byte Delay Time, calculated on startup.
+static int32_t SERIALDELAY_4B;      // Four Byte Delay Time, calculated on startup.
 uint8_t intro_pkts[] = {0x4D,0x33,0x5A};    // M3Z | Ident info serial mouse.
 
 /* ---------------------------------------------------------- */
@@ -87,6 +88,8 @@ void tuh_hid_mount_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* desc_re
 {
     uint8_t const itf_protocol = tuh_hid_interface_protocol(dev_addr, instance);
 
+    if ( DEBUG ) { printf("Device with address %d, instance %d, protocol %d, has mounted.\r\n", dev_addr, instance, itf_protocol); }
+
     // If connected device is not a mouse or compatible
     if ( itf_protocol != HID_ITF_PROTOCOL_MOUSE ) {
 
@@ -119,8 +122,8 @@ void tuh_hid_umount_cb(uint8_t dev_addr, uint8_t instance)
         mouse_connected = false;    // Flag mouse as not connected
     }
 
-    uart_deinit(UART_ID);           // DeInit UART for sanity sake
-    machine_reboot();               // There's a bug in TinyUSB, a reboot should bypass it
+    //uart_deinit(UART_ID);           // DeInit UART for sanity sake
+    //machine_reboot();               // There's a bug in TinyUSB, a reboot should bypass it
 }
 
 // This is executed when data is received from the mouse.
@@ -230,14 +233,12 @@ void update_mousepacket()
 /*---------------------------------------*/
 
 // Post off data over UART. 
-void serial_putc(uint8_t *buffer, int size)
-{ 
+void serial_putc(uint8_t *buffer, int size){ 
     for( uint8_t i=0; i <= size; i++ )  { uart_putc_raw( UART_ID, buffer[i] ); } 
 }
 
 // Serial mouse negotiation
-void mouse_id_nego() 
-{
+void mouse_id_nego() {
     /*---------------------------------------*/
     //        Serial Mouse negotiation       //
     /*---------------------------------------*/
@@ -254,7 +255,7 @@ void mouse_id_nego()
         sleep_us(SERIALDELAY_1B);           
         uart_putc_raw( UART_ID, intro_pkts[1] );    // 3
     }
-    else if ( mouse_data.type == WHEELBTN ){
+    else if ( mouse_data.type == WHEELBTN ) {
         sleep_us(SERIALDELAY_1B);       
         uart_putc_raw( UART_ID, intro_pkts[2] );    // Z
     }
@@ -263,35 +264,26 @@ void mouse_id_nego()
 }
 
 // Update stored mouse data and post
-void post_serial_mouse() 
-{
-    update_mousepacket();
+void post_serial_mouse() {
 
-    // If there's nothing worth talking about, feck it
-    if ( !mouse_data.mpkt.update ) { return; }
-
-    uint8_t packet[4];
+    uint8_t packet[4];                          // Create packet array
+    update_mousepacket();                       // Get Current Mouse Data
+    if ( !mouse_data.mpkt.update ) { return; }  // Skip if no update.
 
     packet[0] = ( 0x40 | (mouse_data.mpkt.left ? 0x20 : 0) | (mouse_data.mpkt.right ? 0x10 : 0) | ((mouse_data.mpkt.y >> 4) & 0xC) | ((mouse_data.mpkt.x >> 6) & 0x3));
     packet[1] = ( 0x00 | (mouse_data.mpkt.x & 0x3F)); 
     packet[2] = ( 0x00 | (mouse_data.mpkt.y & 0x3F));
 
-    if ( mouse_data.type == WHEELBTN )
-    {
+    if ( mouse_data.type == WHEELBTN ){         // Add Wheel Data + Third Button
         packet[3] = (0x00 | (mouse_data.mpkt.middle ? 0x20 : 0) | (-mouse_data.mpkt.wheel & 0x0f));
         serial_putc(packet,  3);
-        txtimer_target = time_us_32() + SERIALDELAY_4B;
     }
-    else if ( mouse_data.type == THREEBTN )
-    {
+    else if ( mouse_data.type == THREEBTN ){    // Add Third Button
         packet[3] = (0x00 | (mouse_data.mpkt.middle ? 0x20 : 0));
         serial_putc(packet,  3);
-        txtimer_target = time_us_32() + SERIALDELAY_4B;
     }
-    else
-    {
+    else{
         serial_putc(packet,  2);
-        txtimer_target = time_us_32() + SERIALDELAY_3B;
     }
 }
 
@@ -374,6 +366,37 @@ void SB_gpio_callback(uint gpio, uint32_t events)
         add_alarm_in_ms(2000, SB_alarm_callback, NULL, true);
 }
 
+
+/*---------------------------------------*/
+//             Repeating Timer           //
+/*---------------------------------------*/
+struct repeating_timer serial_timer;
+bool serial_timer_running = false;
+
+bool serial_timer_callback(struct repeating_timer *t) {
+    
+    if ( mouse_data.pc_state == CTS_TOGGLED && mouse_connected ) { post_serial_mouse(); }
+    return true;
+}
+
+bool create_serial_timer(int64_t delay_ms) {
+    add_repeating_timer_us(delay_ms, serial_timer_callback, NULL, &serial_timer);
+    return true;
+}
+
+bool delete_serial_timer() {
+
+    bool cancelled = false;
+
+    while ( !cancelled ) {
+        cancel_repeating_timer(&serial_timer);
+        sleep_us(SERIALDELAY_1B);
+    }
+
+    return false;
+}
+
+
 /*---------------------------------------*/
 //                  Main                 //
 /*---------------------------------------*/
@@ -435,7 +458,7 @@ int main(void)
     //            PACKET DELAYS              //
     /*---------------------------------------*/
 
-    SERIALDELAY_1B = ((7500 * (BAUD_RATE / 1200)) + TXWIGGLEROOM );
+    SERIALDELAY_1B = (( 7500 * (BAUD_RATE / 1200)) +      TXWIGGLEROOM );
     SERIALDELAY_3B = (((7500 * (BAUD_RATE / 1200)) * 3) + TXWIGGLEROOM );
     SERIALDELAY_4B = (((7500 * (BAUD_RATE / 1200)) * 4) + TXWIGGLEROOM );
 
@@ -446,13 +469,25 @@ int main(void)
     board_init();           // init board from TinyUSB
     tusb_init();            // init TinyUSB
 
+
+    if ( !serial_timer_running ) {   
+
+        if ( mouse_data.type == TWOBTN ) {
+            serial_timer_running = create_serial_timer( SERIALDELAY_3B );
+        }
+
+        else if ( mouse_data.type == THREEBTN ) {
+            serial_timer_running = create_serial_timer( SERIALDELAY_4B );
+        }
+    }
+
     /*---------------------------------------*/
     //               Main Loop               //
     /*---------------------------------------*/
     while(1) 
     {   
         bool cts_pin = gpio_get(UART_CTS_PIN);
-
+        
         // Check if mouse driver trying to initialize
         // Computers RTS is low, with MAX3232 this shows reversed as high instead? Check spec. <-- Thanks Aviancer
         if(cts_pin) { 
@@ -469,17 +504,13 @@ int main(void)
                 bool cts_pin = gpio_get(UART_CTS_PIN);
                 
                 if ( cts_pin ) { mouse_data.pc_state = CTS_LOW_INIT; }
-
-                txtimer_target = time_us_32() + SERIALDELAY_4B;
             }
         }
 
         // Mouse initializing request detected
         if( !cts_pin && mouse_data.pc_state == CTS_LOW_INIT ) {
-            mouse_data.pc_state = CTS_TOGGLED;
             mouse_id_nego();
-              
-              txtimer_target = time_us_32() + SERIALDELAY_3B;  // Set initial serial transmit timer target
+            mouse_data.pc_state = CTS_TOGGLED;
         }
 
         if ( !cts_pin && mouse_data.pc_state == CTS_UNINIT) {
@@ -495,23 +526,13 @@ int main(void)
 
         /*** Mouse update loop ***/
         if( mouse_data.pc_state == CTS_TOGGLED ) {
-            // mouse_data.pc_state = CTS_TOGGLED;
-            //led_state ^= 1; // Flip state between 0/1 // DEBUG
-
             tuh_task(); // tinyusb host task
-
-            if ( mouse_connected )
-            {
-                if( time_reached(txtimer_target) ) {
-                    post_serial_mouse();
-                }
-            }
         }
 
         // we fall in here for the thing (yank out serial cable )
         if( (mouse_data.pc_state != CTS_TOGGLED && mouse_connected) )
         {   
-            if ( DEBUG ) { printf("Serial Connection lost"); }
+            if ( DEBUG ) { printf("Serial Connection not found"); }
 
             // Call ALRT Code flasher for Serial Connection Lost. 
             // TODO
