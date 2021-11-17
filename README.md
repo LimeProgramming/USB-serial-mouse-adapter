@@ -7,3 +7,6 @@ Please Note: This is the first time I've ever designed a PCB from scratch, so th
 # SDK
 Currently TinyUSB does not work at all in the newest version of the SDK, in my testing anyway.
 So I included the versino of the SDK I'm using until TinyUSB works again.
+
+# KiCad
+I do hope that the KiCad files are "final" by now. Waiting on my own order to arrive.
