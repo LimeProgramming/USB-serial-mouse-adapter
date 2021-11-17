@@ -1,3 +1,3 @@
 (fp_lib_table
-  (lib (name usbpico)(type KiCad)(uri N:/arduino/ps22serial/USBtoSerialPico/USBtoserialpico/USBPICO_Footprints.pretty)(options "")(descr ""))
+  (lib (name USB-2-232)(type KiCad)(uri N:/arduino/ps22serial/USBtoSerialPico/USB-2-232/USB-2-232_Footprints.pretty)(options "")(descr ""))
 )
