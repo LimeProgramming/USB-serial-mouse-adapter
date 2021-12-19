@@ -37,6 +37,18 @@ enum PC_INIT_STATES {
   CTS_TOGGLED  = 2  // CTS was low, now high -> do ident.
 };
 
+typedef struct {                            // Mouse report information
+    bool left, middle, right;
+    int16_t  x, y, wheel;
+    bool update;
+} MOUSE_PKT;
+
+typedef struct {                            // Mouse Settings and information
+    uint8_t     speed;                      // Mouse Tracking Speed
+    uint8_t     type;                       // Mouse Type
+    uint8_t     pc_state;                   // CTS state tracker | taken from Aviancer's code since it was more straightforward than what I had already
+    MOUSE_PKT   mpkt;                       // Current Mouse Packet
+} MOUSE_DATA;
 
 #if CTYPES_C_ 
 

@@ -1,10 +1,13 @@
 #include "tusb.h"
+#include <stdio.h>
 #include <stdlib.h>
 #include "bsp/board.h"
+#include "pico/stdlib.h"
 #include "hardware/gpio.h"
 #include "hardware/uart.h"
 #include "hardware/timer.h"
 #include "hardware/divider.h"
+#include "hardware/watchdog.h"
 
 #include "include/ctypes.h"
 #include "include/utils.h"
@@ -40,7 +43,7 @@
     33.25.. updates per second with 4 bytes.
     ~0.0075 seconds per byte, target time calculated for 4 bytes.
 
-    SERIALDELAY = (((7500 * (BAUD_RATE / 1200)) * NumberOfBytes) + TXWIGGLEROOM )
+    SERIALDELAY = (((7500 * (BAUD_RATE / 1200)) * NumberOfBytes) + TXWIGGLEROOM )*/
 /* ---------------------------------------------------------- */
 
 static int32_t TXWIGGLEROOM    = 0; // This is for adding a bit of padding to the serial delays, shouldn't be needed but some controllers are awkward.
@@ -51,8 +54,8 @@ static int32_t SERIALDELAY_4B;      // Four Byte Delay Time, calculated on start
 uint8_t intro_pkts[] = {0x4D,0x33,0x5A};    // M3Z | Ident info serial mouse.
 
 /* ---------------------------------------------------------- */
-// Some structs for mouse tracking
-
+// Mouse Tracking Variables
+/*
 typedef struct {                            // Mouse report information
     bool left, middle, right;
     int16_t  x, y, wheel;
@@ -65,10 +68,7 @@ typedef struct {                            // Mouse Settings and information
     uint8_t     pc_state;                   // CTS state tracker | taken from Aviancer's code since it was more straightforward than what I had already
     MOUSE_PKT   mpkt;                       // Current Mouse Packet
 } MOUSE_DATA;
-
-/* ---------------------------------------------------------- */
-// Mouse Tracking Variables
-
+*/
 MOUSE_DATA mouse_data;
 static bool mouse_connected = false;    // Is mouse connected flag
 bool btnFlipFlop[3];                    // The Button Flip Flop | Left Click + Middle Click + Right Click
@@ -77,41 +77,104 @@ bool btnToggle[3];                      // FlipFlop toggle flag | Left Click + M
 int16_t mLoc[3];                        // Mouse location Data | X + Y + Wheel
 
 /*---------------------------------------*/
-//           TinyUSB Functions           //
+//             TinyUSB Stuff             //
 /*---------------------------------------*/
 
-static void process_mouse_report(hid_mouse_report_t const * report);
+/*----- Variables -----*/
+
+#define MAX_HID_REPORT  4 // Each HID instance can has multiple reports
+
+static struct{
+  uint8_t report_count;
+  tuh_hid_report_info_t report_info[MAX_HID_REPORT];
+}hid_info[CFG_TUH_HID];
+
+CFG_TUSB_MEM_SECTION static char serial_in_buffer[64] = { 0 };
+
+/*----- Functions -----*/
+
 void set_mouseclick(uint8_t spot, bool value);
 
-// This is executed when a new device is mounted.
+//static inline void process_mouse_report(mouse_state_t *mouse, hid_mouse_report_t const *p_report);
+void process_mouse_report(hid_mouse_report_t const * report);
+
+// Handle generic USB Report
+void process_generic_report(uint8_t dev_addr, uint8_t instance, uint8_t const* report, uint16_t len) {
+    (void) dev_addr;
+
+    uint8_t const rpt_count = hid_info[instance].report_count;
+    tuh_hid_report_info_t* rpt_info_arr = hid_info[instance].report_info;
+    tuh_hid_report_info_t* rpt_info = NULL;
+
+    if ( rpt_count == 1 && rpt_info_arr[0].report_id == 0) {    // Simple report without report ID as 1st byte
+        rpt_info = &rpt_info_arr[0];        
+    }
+    
+    else {
+        uint8_t const rpt_id = report[0];                       // Composite report, 1st byte is report ID, data starts from 2nd byte
+
+        for ( uint8_t i=0; i<rpt_count; i++ ) {
+            if ( rpt_id == rpt_info_arr[i].report_id ) {
+                rpt_info = &rpt_info_arr[i];
+                break;
+            }}
+
+        report++;   len--;
+    }
+
+    // For complete list of Usage Page & Usage checkout src/class/hid/hid.h. && Assume mouse follow boot report layout
+    if ( rpt_info && rpt_info->usage_page == HID_USAGE_PAGE_DESKTOP && rpt_info->usage == HID_USAGE_DESKTOP_MOUSE ) {
+        gpio_put(LED_ALERT, 1);     // Turn on Alert LED
+        mouse_connected = true;     // Flag mouse as connected
+        process_mouse_report((hid_mouse_report_t const*) report); 
+    }
+}
+
+/*
+// invoked ISR context I don't think this does anything
+void tuh_cdc_xfer_isr(uint8_t dev_addr, xfer_result_t event, cdc_pipeid_t pipe_id, uint32_t xferred_bytes)
+{
+    (void) event;
+    (void) pipe_id;
+    (void) xferred_bytes;
+
+    tu_memclr(serial_in_buffer, sizeof(serial_in_buffer));
+
+    tuh_cdc_receive(dev_addr, serial_in_buffer, sizeof(serial_in_buffer), true); // waiting for next data
+}*/
+
+// This is executed when a new device is mounted
 void tuh_hid_mount_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* desc_report, uint16_t desc_len)
 {
     uint8_t const itf_protocol = tuh_hid_interface_protocol(dev_addr, instance);
 
-    if ( DEBUG ) { printf("Device with address %d, instance %d, protocol %d, has mounted.\r\n", dev_addr, instance, itf_protocol); }
+    switch (itf_protocol) 
+    {
+        case HID_ITF_PROTOCOL_MOUSE:    // Process Mouse Report
+            gpio_put(LED_ALERT, 1);     // Turn on Alert LED
+            mouse_connected = true;     // Flag mouse as connected
+            // TODO: Flag mouse connected ALRT
+            break;
 
-    // If connected device is not a mouse or compatible
-    if ( itf_protocol != HID_ITF_PROTOCOL_MOUSE ) {
+        case HID_ITF_PROTOCOL_NONE:    // Process Mouse Report
+            // By default host stack will use activate boot protocol on supported interface.
+            hid_info[instance].report_count = tuh_hid_parse_report_descriptor(hid_info[instance].report_info, MAX_HID_REPORT, desc_report, desc_len);
+            // TODO: Flag mouse unsure ALRT
+            break;
 
-        // Debug Print out
-        if ( DEBUG) { printf("Device with address %d, instance %d is not a mouse.\r\n", dev_addr, instance); }
-
-        // Call ALRT Code flasher for incompatible device. 
-        // TODO
-
-        return; // Exit func
+        default:                        // Process Generic Report
+            // TODO: Flag incompatible ALRT
+            break;
     }
-
-    gpio_put(LED_ALERT, 1);     // Turn on Alert LED
-    mouse_connected = true;     // Flag mouse as connected
 
     if ( DEBUG ) { 
         const char* protocol_str[] = { "None", "Keyboard", "Mouse" };
-        printf("Device with address %d, instance %d is a %s.\r\n", dev_addr, instance, protocol_str[itf_protocol]);
+        printf("Device with address %d, instance %d, protocol %d, has mounted.\r\n", dev_addr, instance, itf_protocol); 
+        printf("Device with address %d, instance %d, protocol %d, is a %s, has mounted.\r\n", dev_addr, instance, itf_protocol, protocol_str[itf_protocol]); 
     }
 }
 
-// This is executed when a device is unmounted.
+// This is executed when a device is unmounted
 void tuh_hid_umount_cb(uint8_t dev_addr, uint8_t instance)
 {   
     // DEBUG printout
@@ -122,16 +185,26 @@ void tuh_hid_umount_cb(uint8_t dev_addr, uint8_t instance)
         mouse_connected = false;    // Flag mouse as not connected
     }
 
-    //uart_deinit(UART_ID);           // DeInit UART for sanity sake
-    //machine_reboot();               // There's a bug in TinyUSB, a reboot should bypass it
+    sleep_ms(100);
+    uart_deinit(UART_ID);           // DeInit UART for sanity sake
+    machine_reboot();               // There's a bug in TinyUSB, a reboot should bypass it
 }
 
-// This is executed when data is received from the mouse.
+// This is executed when data is received from the mouse
 void tuh_hid_report_received_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* report, uint16_t len)
 {   
-    // This is to ensure that anything which isn't a mouse is ignored
-    if ( tuh_hid_interface_protocol(dev_addr, instance) == HID_ITF_PROTOCOL_MOUSE ) {
-        process_mouse_report((hid_mouse_report_t const*) report);
+    switch (tuh_hid_interface_protocol(dev_addr, instance)) 
+    {
+        case HID_ITF_PROTOCOL_MOUSE:    // Process Mouse Report
+            process_mouse_report((hid_mouse_report_t const*) report );
+            break;
+
+        case HID_ITF_PROTOCOL_KEYBOARD: // Throw Away Keyboard Reports
+            break;
+
+        default:                        // Process Generic Report
+            process_generic_report(dev_addr, instance, report, len);
+            break;
     }
 }
 
@@ -140,7 +213,7 @@ void tuh_hid_report_received_cb(uint8_t dev_addr, uint8_t instance, uint8_t cons
 /*---------------------------------------*/
 
 // Point the mouse report data to the correct places
-static void process_mouse_report(hid_mouse_report_t const * report)
+void process_mouse_report(hid_mouse_report_t const * report)
 {
     // Send the button report data off to the flip flop tracker
     set_mouseclick(0, report->buttons & MOUSE_BUTTON_LEFT);
@@ -247,7 +320,7 @@ void mouse_id_nego() {
     /*---------------------------------------*/
 
     // Wait for UART to be writable
-    while ( !uart_is_writable ) { sleep_us(SERIALDELAY_1B); }   
+    while ( !uart_is_writable(UART_ID) ) { sleep_us(SERIALDELAY_1B); }   
 
     uart_putc_raw( UART_ID, intro_pkts[0] );        // M
     
@@ -265,11 +338,10 @@ void mouse_id_nego() {
 
 // Update stored mouse data and post
 void post_serial_mouse() {
-
     uint8_t packet[4];                          // Create packet array
     update_mousepacket();                       // Get Current Mouse Data
     if ( !mouse_data.mpkt.update ) { return; }  // Skip if no update.
-
+    
     packet[0] = ( 0x40 | (mouse_data.mpkt.left ? 0x20 : 0) | (mouse_data.mpkt.right ? 0x10 : 0) | ((mouse_data.mpkt.y >> 4) & 0xC) | ((mouse_data.mpkt.x >> 6) & 0x3));
     packet[1] = ( 0x00 | (mouse_data.mpkt.x & 0x3F)); 
     packet[2] = ( 0x00 | (mouse_data.mpkt.y & 0x3F));
@@ -316,92 +388,82 @@ void setMouseSpeed()
 
 /*
 I spent a bit of time trying to figure out the simplest way to have mouse settings updatable without restarting the pi pico.
-I could have just called setMouseSpeed() in the main loop all the time but that felt wasteful.
+I could have just called the above functions in the main loop all the time but that felt wasteful.
 Debounce in a gpio_callback doesn't work well, give it a Google, some fellow tried it and it was spotty.
 I implemented a hardware debounce but decided against it, since it made the final PCB bigger for something not integral. 
 
-Ultimately I decided it was best to add an alarm from a GPIO callback to act as a shitty debounce.
-While the IRQ is triggering from the bounce the mouse movement could be spotty but you're not moving the mouse while changing pin headers, so it doesn't matter.
-Plus, I want as little as possible in the main loop to avoid the possibility of missing input.
+Ultimately I decided it was best to add an alarm from a GPIO callback to act as a poor mans debounce.
 */
 
-/* ===== Mouse Options Callback ===== */
+volatile bool MS_IRQ_TRIGGERED = false;
+volatile bool DS_IRQ_TRIGGERED = false;
 
-volatile bool MO_IRQ_TRIGGERED = false;
-
-int64_t MO_alarm_callback(alarm_id_t id, void *user_data)
+int64_t ms_alarm_callback(alarm_id_t id, void *user_data)   // Mouse Speed Alarm
 {
-    setMouseSpeed();                          // Update Mouse Options
-    MO_IRQ_TRIGGERED = false;                   // Unset IRQ Bool
+    setMouseSpeed();                            // Update Mouse Options
+    MS_IRQ_TRIGGERED = false;                   // Unset IRQ Bool
     return 0;                                   // Ret 0
 }
 
-void MO_gpio_callback(uint gpio, uint32_t events) 
+int64_t ds_alarm_callback(alarm_id_t id, void *user_data)   // Double Stop Bit Alarm
 {
-    gpio_acknowledge_irq(gpio, events);         // ACK GPIO IRQ
-    if ( !MO_IRQ_TRIGGERED )                    // If IRQ bool is not set
-        MO_IRQ_TRIGGERED = true;                // Set IRQ bool
-        add_alarm_in_ms(2000, MO_alarm_callback, NULL, true);   // Call MO_alarm_callback in 2 seconds
-}
-
-/* ===== Stop Bit Callback ===== */
-// Made this seperate since I don't want to touch the UART settings unless required.
-volatile bool SB_IRQ_TRIGGERED = false;
-
-int64_t SB_alarm_callback(alarm_id_t id, void *user_data)
-{
-    // Set Double Stop Toggle
     if ( !gpio_get(MO_7N2) )    { uart_set_format(UART_ID, 7, 2, UART_PARITY_NONE); }   // 7N2
     else                        { uart_set_format(UART_ID, 7, 1, UART_PARITY_NONE); }   // 7N1
-    SB_IRQ_TRIGGERED = false;                   // Unset IRQ Bool
+    DS_IRQ_TRIGGERED = false;                   // Unset IRQ Bool
     return 0;                                   // Ret 0
 }
 
-void SB_gpio_callback(uint gpio, uint32_t events) 
+void dipsw_gpio_callback(uint gpio, uint32_t events) 
 {
     gpio_acknowledge_irq(gpio, events);         // ACK GPIO IRQ
-    if ( !SB_IRQ_TRIGGERED )                    // If IRQ bool is not set
-        SB_IRQ_TRIGGERED = true;                // Set IRQ bool
-        // Call SB_alarm_callback in 2 seconds
-        add_alarm_in_ms(2000, SB_alarm_callback, NULL, true);
-}
+    
+    if ( gpio == MO_50SPEED || gpio == MO_75SPEED ) {
+        if ( !MS_IRQ_TRIGGERED ) {                  // If IRQ bool is not set
+            MS_IRQ_TRIGGERED = true;                // Set IRQ bool
+            add_alarm_in_ms(2000, ms_alarm_callback, NULL, true);   // Call MO_alarm_callback in 2 seconds
+    }}
 
+    else if ( gpio == MO_7N2 ) {
+        if ( !DS_IRQ_TRIGGERED ) {                  // If IRQ bool is not set
+            DS_IRQ_TRIGGERED = true;                // Set IRQ bool
+            add_alarm_in_ms(2000, ds_alarm_callback, NULL, true);// Call SB_alarm_callback in 2 seconds
+    }}
+}
 
 /*---------------------------------------*/
 //             Repeating Timer           //
 /*---------------------------------------*/
 struct repeating_timer serial_timer;
-bool serial_timer_running = false;
+volatile bool serial_timer_running = false;
 
 bool serial_timer_callback(struct repeating_timer *t) {
-    
-    if ( mouse_data.pc_state == CTS_TOGGLED && mouse_connected ) { post_serial_mouse(); }
+    if ( (mouse_data.pc_state == CTS_TOGGLED && mouse_connected) || DEBUG ) { post_serial_mouse(); }
     return true;
 }
 
-bool create_serial_timer(int64_t delay_ms) {
-    add_repeating_timer_us(delay_ms, serial_timer_callback, NULL, &serial_timer);
-    return true;
-}
+void toggle_serial_timer() {
+    if  ( serial_timer_running )  { 
+        cancel_repeating_timer(&serial_timer); 
+        serial_timer_running = false;
+    } else {
+        int delay_ms = 0;
 
-bool delete_serial_timer() {
+        if  ( mouse_data.type == TWOBTN )   { delay_ms = SERIALDELAY_3B; } 
+        else                                { delay_ms = SERIALDELAY_4B; }
 
-    bool cancelled = false;
-
-    while ( !cancelled ) {
-        cancel_repeating_timer(&serial_timer);
-        sleep_us(SERIALDELAY_1B);
+        add_repeating_timer_us(delay_ms, serial_timer_callback, NULL, &serial_timer);
+        serial_timer_running = true;
     }
-
-    return false;
 }
-
 
 /*---------------------------------------*/
 //                  Main                 //
 /*---------------------------------------*/
-int main(void)
-{
+int main(){
+    stdio_init_all();       // pico SDK
+    board_init();           // init board from TinyUSB
+    tusb_init();            // init TinyUSB
+
     /*---------------------------------------*/
     //                 LEDS                  //
     /*---------------------------------------*/
@@ -413,28 +475,19 @@ int main(void)
     /*---------------------------------------*/
     //              Mouse Options            //
     /*---------------------------------------*/
+    
+    // Setup Dip Switch Pins
+    int dipswpins[6] = { MO_WHEEL, MO_THREEBTN, MO_50SPEED, MO_75SPEED, MO_7N2, MO_RESERVERD};
+    for ( uint8_t i = 0; i < 6; i++ ) { init_pinheader(dipswpins[i]); }
 
-    // Three BTN Type Pin | Mouse Wheel Type Pin 
-    init_pinheader(MO_WHEEL);
-    init_pinheader(MO_THREEBTN);
-
+    // Set Mouse Type
     setMouseType();
     
-    // 50% Travel Rate Pin | 75% Travel Rate Pin 
-    init_pinheader(MO_50SPEED);
-    init_pinheader(MO_75SPEED);
-    gpio_set_irq_enabled_with_callback(MO_50SPEED, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &MO_gpio_callback);
-    gpio_set_irq_enabled_with_callback(MO_75SPEED, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &MO_gpio_callback);
+    // Set up IRQ callbacks on Dip Switch Pins
+    gpio_set_irq_enabled_with_callback(MO_50SPEED, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &dipsw_gpio_callback);
+    gpio_set_irq_enabled_with_callback(MO_75SPEED, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &dipsw_gpio_callback);
+    gpio_set_irq_enabled_with_callback(MO_7N2, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &dipsw_gpio_callback);
 
-    setMouseSpeed();
-
-    // Configure Awkward Compatibility Pin Header
-    init_pinheader(MO_7N2);         
-    gpio_set_irq_enabled_with_callback(MO_7N2, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &SB_gpio_callback);
-
-    // Configure Reserved pin ---- Since you've read this far down, this pin is reserved for higher Baud Rate setting. If it even works.
-    init_pinheader(MO_RESERVERD);   
-    
     /*---------------------------------------*/
     //              UART STUFF               //
     /*---------------------------------------*/
@@ -454,38 +507,27 @@ int main(void)
     if ( !gpio_get(MO_7N2) )    { uart_set_format(UART_ID, 7, 2, UART_PARITY_NONE); }   // 7N2
     else                        { uart_set_format(UART_ID, 7, 1, UART_PARITY_NONE); }   // 7N1
 
-    /*---------------------------------------*/
-    //            PACKET DELAYS              //
-    /*---------------------------------------*/
+    /*----------   PACKET DELAYS   ----------*/
 
     SERIALDELAY_1B = (( 7500 * (BAUD_RATE / 1200)) +      TXWIGGLEROOM );
     SERIALDELAY_3B = (((7500 * (BAUD_RATE / 1200)) * 3) + TXWIGGLEROOM );
     SERIALDELAY_4B = (((7500 * (BAUD_RATE / 1200)) * 4) + TXWIGGLEROOM );
 
-    /*---------------------------------------*/
-    //                TinyUSB                //
-    /*---------------------------------------*/
-    
-    board_init();           // init board from TinyUSB
-    tusb_init();            // init TinyUSB
+    /*----------   TIMER   ----------*/
 
-
-    if ( !serial_timer_running ) {   
-
-        if ( mouse_data.type == TWOBTN ) {
-            serial_timer_running = create_serial_timer( SERIALDELAY_3B );
-        }
-
-        else if ( mouse_data.type == THREEBTN ) {
-            serial_timer_running = create_serial_timer( SERIALDELAY_4B );
-        }
-    }
+    toggle_serial_timer();
+    sleep_ms(1110);
+    toggle_serial_timer();
+    sleep_ms(1110);
+    toggle_serial_timer();
+    sleep_ms(1110);
 
     /*---------------------------------------*/
     //               Main Loop               //
     /*---------------------------------------*/
-    while(1) 
-    {   
+    while(1)
+    {
+        
         bool cts_pin = gpio_get(UART_CTS_PIN);
         
         // Check if mouse driver trying to initialize
@@ -525,19 +567,22 @@ int main(void)
         }
 
         /*** Mouse update loop ***/
-        if( mouse_data.pc_state == CTS_TOGGLED ) {
+        if( mouse_data.pc_state == CTS_TOGGLED || DEBUG ) {
             tuh_task(); // tinyusb host task
         }
 
         // we fall in here for the thing (yank out serial cable )
         if( (mouse_data.pc_state != CTS_TOGGLED && mouse_connected) )
         {   
-            if ( DEBUG ) { printf("Serial Connection not found"); }
+            //if ( DEBUG ) { printf("Serial Connection not found"); }
 
             // Call ALRT Code flasher for Serial Connection Lost. 
             // TODO
 
-        }
+        }   
+
 
     }
+
+
 }
