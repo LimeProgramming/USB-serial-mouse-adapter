@@ -1,7 +1,6 @@
 # USB Serial Mouse Adapter
 A USB to serial mouse adapter!
-
-
+![Assembled adaptor](https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/images/assembled_small.jpg)
 ## Features
 With this adapter you can convert a modern USB mouse to a classic serial mouse. Want to use an optical mouse on a 386 running Wolfenstein 3D? Well now you can! Want to use a wireless optical mouse on a 486 running Doom? Well you might be able to! (depending on the mouse)
 
@@ -17,7 +16,7 @@ With this adapter you can convert a modern USB mouse to a classic serial mouse. 
 Note: support for these can be added if the demand is there. 
 
  **Dip Switch Settings**
-| Number | Setting |
+| Num | Setting |
 |:--:|:--:|
 | 1 | Three Button Logitech Protocol |
 | 2 | MS Wheel Protocol |
