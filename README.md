@@ -1,12 +1,30 @@
-# Work in progesss
+# USB Serial Mouse Adapter
+A USB to serial mouse adapter!
 
-While KiCad files are available, I have to yet to get my hands on a made up board.
 
-Please Note: This is the first time I've ever designed a PCB from scratch, so there may be a newbie mistake or two. 
+## Features
 
-# SDK
-Use the 1.2.0 version of the Pico SDK with TinyUSB version 10.1
-11 or greater don't work very well at the moment and I really don't know why. I've heard that I'm not the only one with this issue and I know from testing that if you take the tuh_hid_*_cb functions and put them into their own project on their own, they work fine. So I have no idea. 
+<center>
+
+| Available Settings |
+|--|
+| Swap left and right mouse buttons  |
+| Use Forward and Back mouse buttons as alternate left and right
+
+</center>
+
 
 # KiCad
-I do hope that the KiCad files are "final" by now. Waiting on my own order to arrive.
+The KiCad files and Gerber files are publicly available in the KiCad folder. Two variants are available:
+| Differences| Phat | Slim |
+|--|--|--|
+| USB Pin Header | 🟢 | ❌ |
+| Dip Switches | 🟢 | ❌ |
+| Serial Pin Headers | 🟢 | ❌ |
+| Size  | ❌  | 🟢 |
+
+
+# Compiling it yourself
+
+## PicoSDK
+Use the 1.2.0 version of the Pico SDK with TinyUSB version 10.1
