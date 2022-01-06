@@ -16,7 +16,21 @@ With this adapter you can convert a modern USB mouse to a classic serial mouse. 
 - MM
 Note: support for these can be added if the demand is there. 
 
-| Available Settings |
+ **Dip Switch Settings**
+| Number | Setting |
+|:--:|:--:|
+| 1 | Three Button Logitech Protocol |
+| 2 | MS Wheel Protocol |
+| 3 | 75% Mouse Travel Modifier / Dip 3 + 4 for 25% |
+| 4 | 50% Mouse Travel Modifier / Dip 3 + 4 for 25% |
+| 5 | 7N2|
+| 6 | 2400 Baud Rate|
+
+
+<br>
+<br>
+
+| Additional Available Settings |
 |:--:|
 | Swap left and right mouse buttons  |
 | Use Forward and Back mouse buttons as alternate left and right |
@@ -24,9 +38,8 @@ Note: support for these can be added if the demand is there.
 | XY mouse travel modifier 1% -> 200% |
 | X mouse  travel modifier 1% -> 200% |
 | y mouse  travel modifier 1% -> 200% |
-| default_mousetype |
-| default_doublestopbit |
-| default_baudrate |
+| One (7N1) or Two (7N2) stop bits  |
+| 1200 2400 4800 9600 Baud Rates |
 
 # KiCad
 The KiCad files and Gerber files are publicly available in the KiCad folder. Two variants are available:
