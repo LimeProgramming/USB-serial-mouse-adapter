@@ -16,11 +16,13 @@ With this adapter you can convert a modern USB mouse to a classic serial mouse. 
 - Logitech Three Button
 - Microsoft Wheel
 
-**Unsupported Protocols:**
+**Unsupported Protocols: (May change based on demand)**
 - Mousesystems
 - Sun
 - MM
-Note: support for these can be added if the demand is there. 
+
+### Settings 
+The adapter has quite a few settings available to it and these settings are stored on the  pi picos memory. It will remember your settings between uses and the same settings carry between different computers and even firmware upgrades (unless otherwise state in a changes log) Should you need to clear these settings you will need to blank the pico with the nuke.uf2 file and reinstalling the firmware. An easier way is planned but not implemented yet.
 
  **Dip Switch Settings**
 | Num | Setting |
@@ -32,8 +34,6 @@ Note: support for these can be added if the demand is there.
 | 5 | 7N2|
 | 6 | 2400 Baud Rate|
 
-
-<br>
 <br>
 
 | Additional Available Settings |
@@ -58,6 +58,11 @@ The KiCad files and Gerber files are publicly available in the KiCad folder. Two
 
 
 # Compiling it yourself
+The default mouse settings can be edited in `default_config.h` prior to compilation. You can use this to set the mouses default settings for your own configuration. 
 
-## PicoSDK
-Use the 1.2.0 version of the Pico SDK with TinyUSB version 10.1
+**What you need:**
+|  |  |
+|--|--|
+| PicoSDK | 1.2.0 |
+
+The version of TinyUSB included with the newest version of the PicoSDK doesn't work great. You could probably use TinyUSB v10.1 on the newest PicoSDK but that's a bit messy.
