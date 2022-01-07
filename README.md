@@ -1,6 +1,10 @@
 # USB Serial Mouse Adapter
 A USB to serial mouse adapter!
 ![Assembled adaptor](https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/images/assembled_small.jpg)
+## Important
+I'm writing this readme before the newest firmware version comes out. 
+Wait until this message goes away before considering this readme valid.
+
 ## About
 This project came about when I got my hands on an old 486 based PC. Having never really dipped my toes into retro computing, I didn't have an old serial mouse on hand. A quick eBay searched revealed that the decent ones cost a nice chunk of change that I didn't feel they were worth. Another search on Vogons revealed that some mad lads out there made active PS/2 to serial adapters using various micro controllers.  
 Out of curiosity I examined how these worked and thought "Why can't I do this with a Pi Pico and USB mouse?" which kicked off this project. 
@@ -48,7 +52,9 @@ The adapter has quite a few settings available to it and these settings are stor
 | 1200 2400 4800 9600 Baud Rates |
 
 # KiCad
-The KiCad files and Gerber files are publicly available in the KiCad folder. Two variants are available:
+There are two variants of the PCB available in the KiCad folder, Phat and Slim for your preference. The main circuit for both PCBs is the same so the firmware package will work on both PCBs.
+Check the renders from KiCad and the table below to see the differences!
+
 | Differences| Phat | Slim |
 |:--|:--:|:--:|
 | USB Pin Header | 🟢 | ❌ |
@@ -57,12 +63,12 @@ The KiCad files and Gerber files are publicly available in the KiCad folder. Two
 | Size  | ❌  | 🟢 |
 
 
-# Compiling it yourself
+# Compiling the Firmware
 The default mouse settings can be edited in `default_config.h` prior to compilation. You can use this to set the mouses default settings for your own configuration. 
 
-**What you need:**
-|  |  |
-|--|--|
-| PicoSDK | 1.2.0 |
+The build environment is a normal PicoSDK setup, there are several guides out the for both Linux and Windows.  From experience the setup is easier in Linux. However there is one important thing you need to know:
 
+**PicoSDK version 1.2.0**
 The version of TinyUSB included with the newest version of the PicoSDK doesn't work great. You could probably use TinyUSB v10.1 on the newest PicoSDK but that's a bit messy.
+
+
