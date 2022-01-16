@@ -72,40 +72,40 @@ Both the phat and slim variants of the PCB support being configured via serial t
 
 **Serial Terminal Options:**      
 + Mouse Travel
-    1. List Config
+    + List Config
             | List the current mouse travel settings
-    2. XY Travel 
+    + XY Travel 
             | XY mouse travel modifier 1% -> 200%
-    3. X Travel
+    + X Travel
              | X (Left and Right) mouse travel modifier 1% -> 200%
-    4. Y Travel 
+    + Y Travel 
             | Y ( Up and Down) mouse travel modifier 1% -> 200%
-    5. Invert X
+    + Invert X
             | Invert X (Left and Right) mouse movement.
-    6. Invert Y
+    + Invert Y
             | Invert Y (Up and Down) mouse movement.
 + Mouse Buttons
-    1. List Config
+    + List Config
         | List the current mouse button settings
-    2. Swap Left and Right
+    + Swap Left and Right
         | Swap the left and right mouse buttons
-    3. Use Forward and Backward
+    + Use Forward and Backward
         | Use the mouse forward and back buttons as alternative left and right buttons
-    4. Swap Forward and Backward
+    + Swap Forward and Backward
         | Swap forward and back buttons if they are being used as alternative left and right buttons
 + Serial Settings
-    1. List Config
+    + List Config
         | List the current serial settings
-    2. Format
+    + Format
         | One stop bit (7N1) or two stop bits (7N2) 
-    3. Baud Rate
+    + Baud Rate
         | 1200 2400 4800 9600 Baud Rates. Note you will need compatible mouse drivers.
-     4. Mouse Type
+     + Mouse Type
      | Microsoft 2 Button, Logitech Three Button or Microsoft Wheel mouse. Note: You may need to reconfigure your mouse driver upon change.
 + Firmware
-    1. Information | Information about the firmware
-    2. Reset | Reset mouse settings back to default
-    3. List Default Settings | List the default settings of the adapter. 
+    + Information | Information about the firmware
+    + Reset | Reset mouse settings back to default
+    + List Default Settings | List the default settings of the adapter. 
 + Exit
     + Return to mouse mode
 
