@@ -25,38 +25,6 @@ With this adapter you can convert a modern USB mouse to a classic serial mouse. 
 - Sun
 - MM
 
-### Settings 
-The adapter has quite a few settings available to it and these settings are stored on the  pi picos memory. It will remember your settings between uses and the same settings carry between different computers and even firmware upgrades (unless otherwise state in a changes log) Should you need to clear these settings you will need to blank the pico with the nuke.uf2 file and reinstalling the firmware. An easier way is planned but not implemented yet.
-
-
-# Configuration
-# USB Serial Mouse Adapter
-A USB to serial mouse adapter!
-![Assembled adaptor](https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/images/assembled_small.jpg)
-## Important
-I'm writing this readme before the newest firmware version comes out. 
-Wait until this message goes away before considering this readme valid.
-
-## About
-This project came about when I got my hands on an old 486 based PC. Having never really dipped my toes into retro computing, I didn't have an old serial mouse on hand. A quick eBay searched revealed that the decent ones cost a nice chunk of change that I didn't feel they were worth. Another search on Vogons revealed that some mad lads out there made active PS/2 to serial adapters using various micro controllers.  
-Out of curiosity I examined how these worked and thought "Why can't I do this with a Pi Pico and USB mouse?" which kicked off this project. 
-
-I hope it sparks your interest!
--Lime
-
-## Features
-With this adapter you can convert a modern USB mouse to a classic serial mouse. Want to use an optical mouse on a 386 running Wolfenstein 3D? Well now you can! Want to use a wireless optical mouse on a 486 running Doom? Well you might be able to! (depending on the mouse)
-
-**Supported Protocols:**
-- Microsoft Two Button
-- Logitech Three Button
-- Microsoft Wheel
-
-**Unsupported Protocols: (May change based on demand)**
-- Mousesystems
-- Sun
-- MM
-
 # Configuration
 
 The adapter has quite a few settings available and these settings are stored on micro controllers flash memory. 
