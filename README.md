@@ -50,7 +50,7 @@ This PCB is the version I had made with the mindset of it being the default/one 
 Made for people be require the adapter to be as small as possible. Not much wider than the serial port itself. 
 
 ## Powering the device
-<img align="center" alt="SLIM_PCB" width="650px" src="https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/images/ideatestimage.png"/>
+<img align="center" alt="SLIM_PCB" width="650px" src="https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/images/power_microusb.png"/>
 
 ## Configuration
 
