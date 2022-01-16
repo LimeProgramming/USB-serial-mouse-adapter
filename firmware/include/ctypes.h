@@ -3,24 +3,21 @@
 #ifndef CTYPES_H_
 #define CTYPES_H_1
 
+#include "pico.h"
+
+
+/* -------------------- Some Basic emums -------------------- */
+
 // Mouse tracking speed modifier
 enum LED_STATE {
   LED_OFF = 0,  
   LED_ON = 1,   
   LED_UNKNOWN_DEVICE = 2,
   LED_UNKNOWN_DEVICE_1 = 3,
-    LED_SERIAL_CONNECTED = 4,
-    LED_SERIAL_CONNECTED_1 = 5,
-    LED_SERIAL_DISCONNECTED = 6,
-    LED_SERIAL_DISCONNECTED_1 = 7,
-};
-
-// Mouse tracking speed modifier
-enum MO_SPEED {
-  SPEED100 = 0, // 100% speed
-  SPEED75 = 1,  // 75% speed
-  SPEED50 = 2,  // 50% speed 
-  SPEED25 = 3   // 50% speed 
+  LED_SERIAL_CONNECTED = 4,
+  LED_SERIAL_CONNECTED_1 = 5,
+  LED_SERIAL_DISCONNECTED = 6,
+  LED_SERIAL_DISCONNECTED_1 = 7,
 };
 
 // Mouse Type enum
@@ -37,30 +34,155 @@ enum PC_INIT_STATES {
   CTS_TOGGLED  = 2  // CTS was low, now high -> do ident.
 };
 
-typedef struct {                            // Mouse report information
+/* -------------------- Mouse Packet Structure -------------------- */
+/*  This is the hold the mouse state for the previous cycle. 
+    Each cycle is defined by the Baud rate. */
+
+typedef struct {    
+    // State of left, middle and right buttons                        
     bool left, middle, right;
+
+    // mouse location delta
     int16_t  x, y, wheel;
+
+    // Is update required this cycle?
     bool update;
+
 } MOUSE_PKT;
 
-typedef struct {                            // Mouse Settings and information
-    uint8_t     speed;                      // Mouse Tracking Speed
-    uint8_t     type;                       // Mouse Type
-    uint8_t     pc_state;                   // CTS state tracker | taken from Aviancer's code since it was more straightforward than what I had already
-    MOUSE_PKT   mpkt;                       // Current Mouse Packet
+/* -------------------- Raw Mouse Packet Structure -------------------- */
+/*  This is the hold the mouse state for the previous cycle. 
+    Each cycle is defined by the Baud rate. */
+typedef struct {    
+
+  // The Button Flip Flop       | Left Click + Middle Click + Right Click
+  bool btnFlipFlop[3];  
+
+  // FlipFlop Cycle Update Flag | Left Click + Middle Click + Right Click       
+  bool btnUpdated[3];   
+
+  // FlipFlop toggle flag       | Left Click + Middle Click + Right Click                
+  bool btnToggle[3];                     
+
+  // Mouse location delta       | X + Y + Wheel
+  int16_t  x, y, wheel;
+
+  // Is update required this cycle?
+  //bool update;
+
+} MOUSE_RPKT;
+
+/* -------------------- Persistent Data Structure -------------------- */
+/*  This is to hold the mouse data that is to survive hard reboots */
+
+typedef struct  {
+    // 255 = first time execution | false = ran before.
+    uint8_t firstrun;
+
+    // global limit | Range 1 -> 200
+    uint8_t xytravel_percentage;
+
+    // seperate x and y limits. | Range 1 -> 200
+    uint8_t xtravel_percentage;
+    uint8_t ytravel_percentage;
+
+    // TWOBTN = 0 | THREEBTN = 1 | WHEELBTN = 2 
+    uint8_t mousetype;
+
+    // Double Stop Bit
+    // 7N1 = 0 | 7N2 = 1
+    bool doublestopbit;
+
+    // Baud rate 
+    // 1200 | 2400 | 4800 | 9600
+    uint16_t baudrate;
+
+    // Swap the left and right buttons 
+    bool swap_left_right;
+
+    // use forward and backward as ALT left and right buttons
+    bool use_forward_backward;
+
+    // Swap forward and backwards
+    bool swap_forward_backward;
+
+    // Invert X and Y movement
+    bool invert_x;
+    bool invert_y;
+
+    // Firmware Versioning
+    uint8_t FW_V_MAJOR;
+    uint8_t FW_V_MINOR;
+    uint8_t FW_V_REVISION;
+
+    // Previous DipSwitch Button State
+    bool ST_DIPSW_THREEBTN;         // DIP 1
+    bool ST_DIPSW_WHEEL;            // DIP 2
+    bool ST_DIPSW_75XYSPEED;        // DIP 3
+    bool ST_DIPSW_50XYSPEED;        // DIP 4
+    bool ST_DIPSW_7N2;              // DIP 5
+    bool ST_DIPSW_2400;             // DIP 6
+
+} PERSISTENT_MOUSE_DATA; 
+
+extern PERSISTENT_MOUSE_DATA pmData;
+
+/* -------------------- Mouse Settings -------------------- */
+// Mouse Settings and information
+
+typedef struct {                            
+
+    // CTS state tracker | taken from Aviancer's code since it was more straightforward than what I had already
+    uint8_t pc_state;
+
+    // serial state tracker. 0 = Mouse mode | 1 = terminal mode.
+    uint8_t serial_state;
+
+    // Current Processed Mouse Packet.                    
+    MOUSE_PKT mpkt;                       
+
+    // Raw Mouse data.                    
+    MOUSE_RPKT rmpkt;    
+
+    // Persisten Mouse data, survives reboots.
+    PERSISTENT_MOUSE_DATA persistent;
+
+    // One Byte Delay Time, calculated on startup.
+    int32_t serialdelay_1B;        
+
+    // Three Byte Delay Time, calculated on startup.         
+    int32_t serialdelay_3B;
+
+    // Four Byte Delay Time, calculated on startup.
+    int32_t serialdelay_4B;
+
+    // M3Z | Ident info serial mouse.
+    uint8_t intro_pkts[3];                  
+
+    // Is mouse connected flag
+    bool mouse_conn;
+
 } MOUSE_DATA;
+
+// Extern value, declared again in usb-2-232.c, can be used everywhere ctypes is included.
+extern MOUSE_DATA mouse_data;
+
+
+/* -------------------- Make the file work stuff -------------------- */
 
 #if CTYPES_C_ 
 
 enum MO_SPEED MO_SPEED;
 enum MO_TYPE MO_TYPE;
 enum PC_INIT_STATES PC_INIT_STATES;
+//PersistentData persistentData;
 
 #else
 
 extern enum MO_SPEED MO_SPEED;
 extern enum MO_TYPE MO_TYPE;
 extern enum PC_INIT_STATES PC_INIT_STATES;
+//extern PersistentData persistentData;
 
 #endif
 

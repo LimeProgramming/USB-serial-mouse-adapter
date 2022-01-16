@@ -2,10 +2,6 @@
 A USB to serial mouse adapter!
 <img align="center" alt="ASSEMBLED_ADAPTER" width="800px" src="https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/images/banner_s.webp"/>
 
-## Important
-I'm writing this readme before the newest firmware version comes out. 
-Wait until this message goes away before considering this readme valid.
-
 ## About
 This project came about when I got my hands on an old 486 based PC. Having never really dipped my toes into retro computing, I didn't have an old serial mouse on hand. A quick eBay searched revealed that the decent ones cost a nice chunk of change that I didn't feel they were worth. Another search on Vogons revealed that some mad lads out there made active PS/2 to serial adapters using various micro controllers.  
 Out of curiosity I examined how these worked and thought "Why can't I do this with a Pi Pico and USB mouse?" which kicked off this project. 
