@@ -36,10 +36,9 @@ Also known as the original design.
 This PCB is the version I had made with the mindset of it being the default/one and only. 
 | Differences | Silkscreen | Description |
 |:--:|:--:| :--:|
+| Serial Pin Header | J1 | Intended to use with a serial breakout cable |
 | USB Pin Header | J3 | Intended to be used with motherboard USB breakout cables |
 | Dip Switches | SW1 | Quickly and easily configure the adapter |
-| Serial Pin Headers | J1 | Intended to use with a serial breakout cable |
-
 
 #### Phat Cases:
 [<img align="center" alt="externalcase" width="320px" src="https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/images/external_reander_s.png" />](https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/images/external_reander.png)[<img align="center" alt="internalcase" width="320px" src="https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/images/Internal_render_s.png" />](https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/images/Internal_render.png)
