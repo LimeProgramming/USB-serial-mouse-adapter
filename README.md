@@ -50,10 +50,16 @@ This PCB is the version I had made with the mindset of it being the default/one 
 Made for people be require the adapter to be as small as possible. Not much wider than the serial port itself. 
 
 ## Powering the device
+### MicroUSB:
 [<img align="center" alt="POWERING_MICROUSB" width="500px" src="https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/images/power_microusb_s.png"/>](https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/images/power_microusb.png)
+The easiest way to power the device would be to use the Picos micro USB port. Be sure to use a USB power only cable or a wall power adapter otherwise it won't pick up the mouse.
 
+### Power-In Header:
 [<img align="center" alt="POWERING_HEADER" width="500px" src="https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/images/power_header_s.png"/>](https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/images/power_header.png)
+Both the Phat and Slim PCB's feature an 5 volt power in header. You can use this creatively to power the adapter, even from the PC itself perhaps? Personally I'm connecting it to a wall power supply to give a more secure connection than MicroUSB.
 
+### Other ways:
+There is nothing stopping you from powering the device using a powered OTG cable or a hacked up USB extension lead. The device itself needs about 100 milliamps so as long as you get it that power, it'll run away happily!
 
 ## Configuration
 
