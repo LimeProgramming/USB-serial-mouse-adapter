@@ -51,6 +51,81 @@ The adapter has quite a few settings available to it and these settings are stor
 | One (7N1) or Two (7N2) stop bits  |
 | 1200 2400 4800 9600 Baud Rates |
 
+# Configuration
+There are two primary ways of editing the settings of the USB-2-232
+
+### Headers
+The phat variant of the PCB includes headers in either of the form of dip switches or jumper headers. While not super configurable they do give quick access to some handy settings. The headers can be set while the micro controller is on with changes being applied in real-time or they can be set while the micro controller is off with changes being applied next time the controller is booted.
+
+| Num | Setting |
+|:--:|:--:|
+| 1 | Three Button Logitech Protocol |
+| 2 | MS Wheel Protocol |
+| 3 | 75% Mouse Travel Modifier / Dip 3 + 4 for 25% |
+| 4 | 50% Mouse Travel Modifier / Dip 3 + 4 for 25% |
+| 5 | 7N2|
+| 6 | 2400 Baud Rate|
+
+### Serial Terminal
+![serial terminal gif](https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/images/serial_term.gif)
+Both the phat and slim variants of the PCB support being configured via serial terminal. The serial terminal allows for more advanced configuration of the mouse adapter. Any additional settings added in a software update will be available here.
+
+**Serial Terminal Options:**      
++ Mouse Travel
+    +| Setting | Desc |
+    |:--:|:--:|
+    | List Config | Three Button Logitech Protocol |
+    | XY Travel  | MS Wheel Protocol |
+    | X Travel | 75% Mouse Travel Modifier / Dip 3 + 4 for 25% |
+    |  Y Travel  | 50% Mouse Travel Modifier / Dip 3 + 4 for 25% |
+    |  Invert X | 7N2|
+    | Invert Y | 2400 Baud Rate|
+    
+    + List Config
+            List the current mouse travel settings.
+    + XY Travel 
+            XY mouse travel modifier 1% -> 200%
+    + X Travel
+             X (Left and Right) mouse travel modifier 1% -> 200%
+    + Y Travel 
+            y ( Up and Down) mouse travel modifier 1% -> 200%
+    + Invert X
+    + Invert Y
++ Mouse Buttons
+    + Item B 1
+    + Item B 2
+    + Item B 3
++ Serial Settings
+    * Item C 1
+    * Item C 2
+    * Item C 3
++ Firmware
++ Exit
+
+
+| Serial Terminal Options |
+|:--:|
+| Swap left and right mouse buttons  |
+| Use Forward and Back mouse buttons as alternate left and right |
+| Independently swap forward and backward buttons |
+| XY mouse travel modifier 1% -> 200% |
+| X mouse  travel modifier 1% -> 200% |
+| y mouse  travel modifier 1% -> 200% |
+| One (7N1) or Two (7N2) stop bits  |
+| 1200 2400 4800 9600 Baud Rates |
+
+You can access the serial terminal in one of two ways:
+
+**Method 1: Serial Terminal Emulator**
+You can open a serial terminal emulator (like kermit) on the computer you have the mouse connected to and connect to the mouse of the same com port the mouse driver is using. 
+```
+7 data bits
+No parity
+No hardware flow control
+```
+(like kermit) on the target computer
+
+
 # KiCad
 There are two variants of the PCB available in the KiCad folder, Phat and Slim for your preference. The main circuit for both PCBs is the same so the firmware package will work on both PCBs.
 Check the renders from KiCad and the table below to see the differences!
