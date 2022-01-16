@@ -120,6 +120,7 @@ As written above, you can reset the adapter back to default settings from the te
 
 #### Small Flat Head Screwdriver
 ![resetting flash](https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/images/reset_flash_s.jpg)
+
 **How To:**
 1. Press a small flat head into the position shown above.
 2. Power on the adapter and the Picos built-in LED will glow solid.
