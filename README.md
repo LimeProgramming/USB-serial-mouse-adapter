@@ -72,35 +72,42 @@ Both the phat and slim variants of the PCB support being configured via serial t
 
 **Serial Terminal Options:**      
 + Mouse Travel
-    +| Setting | Desc |
-    |:--:|:--:|
-    | List Config | Three Button Logitech Protocol |
-    | XY Travel  | MS Wheel Protocol |
-    | X Travel | 75% Mouse Travel Modifier / Dip 3 + 4 for 25% |
-    |  Y Travel  | 50% Mouse Travel Modifier / Dip 3 + 4 for 25% |
-    |  Invert X | 7N2|
-    | Invert Y | 2400 Baud Rate|
-    
-    + List Config
-            List the current mouse travel settings.
-    + XY Travel 
-            XY mouse travel modifier 1% -> 200%
-    + X Travel
-             X (Left and Right) mouse travel modifier 1% -> 200%
-    + Y Travel 
-            y ( Up and Down) mouse travel modifier 1% -> 200%
-    + Invert X
-    + Invert Y
+    1. List Config
+            | List the current mouse travel settings
+    2. XY Travel 
+            | XY mouse travel modifier 1% -> 200%
+    3. X Travel
+             | X (Left and Right) mouse travel modifier 1% -> 200%
+    4. Y Travel 
+            | Y ( Up and Down) mouse travel modifier 1% -> 200%
+    5. Invert X
+            | Invert X (Left and Right) mouse movement.
+    6. Invert Y
+            | Invert Y (Up and Down) mouse movement.
 + Mouse Buttons
-    + Item B 1
-    + Item B 2
-    + Item B 3
+    1. List Config
+        | List the current mouse button settings
+    2. Swap Left and Right
+        | Swap the left and right mouse buttons
+    3. Use Forward and Backward
+        | Use the mouse forward and back buttons as alternative left and right buttons
+    4. Swap Forward and Backward
+        | Swap forward and back buttons if they are being used as alternative left and right buttons
 + Serial Settings
-    * Item C 1
-    * Item C 2
-    * Item C 3
+    1. List Config
+        | List the current serial settings
+    2. Format
+        | One stop bit (7N1) or two stop bits (7N2) 
+    3. Baud Rate
+        | 1200 2400 4800 9600 Baud Rates. Note you will need compatible mouse drivers.
+     4. Mouse Type
+     | Microsoft 2 Button, Logitech Three Button or Microsoft Wheel mouse. Note: You may need to reconfigure your mouse driver upon change.
 + Firmware
+    1. Information | Information about the firmware
+    2. Reset | Reset mouse settings back to default
+    3. List Default Settings | List the default settings of the adapter. 
 + Exit
+    + Return to mouse mode
 
 
 | Serial Terminal Options |
