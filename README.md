@@ -30,7 +30,7 @@ Want to use an optical mouse on a 386 running Wolfenstein 3D? Well now you can! 
 There are two variants of the PCB available in the KiCad folder, Phat and Slim for your preference. The main circuit for both PCBs is the same so the firmware package will work on both PCBs.
 
 ### Phat:
-![phat_PCB](https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/images/phat_readme_s.png)
+[<img align="center" alt="PHAT_PCB" width="650px" src="https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/images/phat_readme_s.png"/>](https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/images/phat_readme.png)
 
 Also known as the original design.
 This PCB is the version I had made with the mindset of it being the default/one and only. 
@@ -45,7 +45,7 @@ This PCB is the version I had made with the mindset of it being the default/one 
 [<img align="center" alt="externalcase" width="300px" src="https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/images/external_reander_s.png" />](https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/images/external_reander.png)[<img align="center" alt="internalcase" width="300px" src="https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/images/Internal_render_s.png" />](https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/images/Internal_render.png)
 
 ### Slim:
-![phat_PCB](https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/images/slim_readme_s.png)
+[<img align="center" alt="SLIM_PCB" width="650px" src="https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/images/slim_readme_s.png"/>](https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/images/slim_readme.png)
 
 Made for people be require the adapter to be as small as possible. Not much wider than the serial port itself. 
 
