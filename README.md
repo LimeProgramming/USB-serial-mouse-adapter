@@ -1,6 +1,7 @@
 # USB Serial Mouse Adapter
 A USB to serial mouse adapter!
-![Assembled adapter](https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/images/assembled_small.jpg)
+<img align="center" alt="ASSEMBLED_ADAPTER" width="700px" src="https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/images/assembled_small.jpg"/>
+
 ## Important
 I'm writing this readme before the newest firmware version comes out. 
 Wait until this message goes away before considering this readme valid.
@@ -143,7 +144,7 @@ There are three different ways to reset the adapter:
 As written above, you can reset the adapter back to default settings from the terminal. You can connect to the unused UART of the pico regardless of the settings of the mouse. 
 
 #### --- Small Flat Head Screwdriver
-![resetting flash](https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/images/reset_flash_s.jpg)
+[<img align="center" alt="RESETTING_FLASH" width="400px" src="https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/images/reset_flash_s.jpg"/>](https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/images/reset_flash.jpg)
 
 **How To:**
 1. Press a small flat head into the position shown above.
