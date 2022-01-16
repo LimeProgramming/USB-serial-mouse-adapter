@@ -109,29 +109,29 @@ Both the phat and slim variants of the PCB support being configured via serial t
 + Exit
     + Return to mouse mode
 
-
-| Serial Terminal Options |
-|:--:|
-| Swap left and right mouse buttons  |
-| Use Forward and Back mouse buttons as alternate left and right |
-| Independently swap forward and backward buttons |
-| XY mouse travel modifier 1% -> 200% |
-| X mouse  travel modifier 1% -> 200% |
-| y mouse  travel modifier 1% -> 200% |
-| One (7N1) or Two (7N2) stop bits  |
-| 1200 2400 4800 9600 Baud Rates |
-
+#### Accessing the terminal
 You can access the serial terminal in one of two ways:
 
 **Method 1: Serial Terminal Emulator**
-You can open a serial terminal emulator (like kermit) on the computer you have the mouse connected to and connect to the mouse of the same com port the mouse driver is using. 
+You can open a serial terminal emulator (like kermit) on the computer you have the mouse connected to, connect to the same com port the mouse driver is using and press the enter key.
 ```
-7 data bits
-No parity
-No hardware flow control
+Baud Rate: User Set
+Data Bits: 7
+Stop Bits: User Set
+Parity: None
+Flow Control: None
 ```
-(like kermit) on the target computer
-
+**Method 2: USB to TTL**
+You can also connect the unused UART of the Pi Pico with a cheap USB to TTL device or even another Pico running the picoprobe firmware. Open your favorite serial terminal emulator (like putty) connect to the TTL device and tap the enter key. 
+```
+Baud Rate: 115200
+Data Bits: 8
+Stop Bits: 1
+Parity: None
+Flow Control: None
+```
+Connecting to the adapter in this way will allow you to change settings regardless of the adapter being connected to a PC or not. 
+The unused UART of the pico can be accessed from the top two pins between the full size USB port of the PCB and the micro USB port of the Pico.
 
 # KiCad
 There are two variants of the PCB available in the KiCad folder, Phat and Slim for your preference. The main circuit for both PCBs is the same so the firmware package will work on both PCBs.
