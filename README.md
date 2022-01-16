@@ -13,7 +13,8 @@ I hope it sparks your interest!
 -Lime
 
 ## Features
-With this adapter you can convert a modern USB mouse to a classic serial mouse. Want to use an optical mouse on a 386 running Wolfenstein 3D? Well now you can! Want to use a wireless optical mouse on a 486 running Doom? Well you might be able to! (depending on the mouse)
+With this adapter you can convert a modern native USB mouse to a classic serial mouse. That's right, native USB! No cheating by secretly using PS/2 compatible mice.
+Want to use an optical mouse on a 386 running Wolfenstein 3D? Well now you can! Want to use a wireless optical mouse on a 486 running Doom? Well you might be able to! (depending on the mouse)
 
 **Supported Protocols:**
 - Microsoft Two Button
@@ -25,7 +26,24 @@ With this adapter you can convert a modern USB mouse to a classic serial mouse. 
 - Sun
 - MM
 
-# Configuration
+## PCBs
+There are two variants of the PCB available in the KiCad folder, Phat and Slim for your preference. The main circuit for both PCBs is the same so the firmware package will work on both PCBs.
+
+### Phat:
+![phat_PCB](https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/images/phat_readme_s.png)
+Also known as the original design.
+This PCB is the version I had made with the mindset of it being the default/one and only. 
+| Differences | Silkscreen | Description |
+|:--:|:--:| :--:|
+| USB Pin Header | J3 | Intended to be used with motherboard USB breakout cables |
+| Dip Switches | SW1 | Quickly and easily configure the adapter |
+| Serial Pin Headers | J1 | Intended to use with a serial breakout cable |
+
+### Slim:
+![phat_PCB](https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/images/slim_readme_s.png)
+Made for people be require the adapter to be as small as possible. Not much wider than the serial port itself. 
+
+## Configuration
 
 The adapter has quite a few settings available and these settings are stored on micro controllers flash memory. 
 It will remember your settings between uses and the same settings carry between different computers and even firmware upgrades (unless otherwise state in a changes log)
@@ -137,18 +155,6 @@ As written above, you can reset the adapter back to default settings from the te
 5. The Pico should reboot on its own and show up as a removable storage device again. If it doesn't, tap the reset button.
 6. Download the latest firmware and drag that UF2 file to the storage device.
 7. The adapter will boot up with default settings.
-
-# KiCad
-There are two variants of the PCB available in the KiCad folder, Phat and Slim for your preference. The main circuit for both PCBs is the same so the firmware package will work on both PCBs.
-Check the renders from KiCad and the table below to see the differences!
-
-| Differences| Phat | Slim |
-|:--|:--:|:--:|
-| USB Pin Header | 🟢 | ❌ |
-| Dip Switches | 🟢 | ❌ |
-| Serial Pin Headers | 🟢 | ❌ |
-| Size  | ❌  | 🟢 |
-
 
 # Compiling the Firmware
 The default mouse settings can be edited in `default_config.h` prior to compilation. You can use this to set the mouses default settings for your own configuration. 
