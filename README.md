@@ -70,7 +70,7 @@ The phat variant of the PCB includes headers in either of the form of dip switch
 ![serial terminal gif](https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/images/serial_term.gif)
 Both the phat and slim variants of the PCB support being configured via serial terminal. The serial terminal allows for more advanced configuration of the mouse adapter. Any additional settings added in a software update will be available here.
 
-**Serial Terminal Options:**      
+### Serial Terminal Options
 + Mouse Travel
     + List Config
             | List the current mouse travel settings
@@ -109,7 +109,7 @@ Both the phat and slim variants of the PCB support being configured via serial t
 + Exit
     + Return to mouse mode
 
-#### Accessing the terminal
+### Accessing the terminal
 You can access the serial terminal in one of two ways:
 
 **Method 1: Serial Terminal Emulator**
