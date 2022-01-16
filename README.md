@@ -112,7 +112,7 @@ Both the phat and slim variants of the PCB support being configured via serial t
 ### Accessing the terminal
 You can access the serial terminal in one of two ways:
 
-#### Method 1: Serial Terminal Emulator**
+#### Method 1: Serial Terminal Emulator
 You can open a serial terminal emulator (like kermit) on the computer you have the mouse connected to, connect to the same com port the mouse driver is using and press the enter key.
 ```
 Baud Rate: User Set
