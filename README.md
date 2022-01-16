@@ -41,8 +41,8 @@ This PCB is the version I had made with the mindset of it being the default/one 
 | Serial Pin Headers | J1 | Intended to use with a serial breakout cable |
 
 
-#### Phat Cases
-![external](https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/images/external_reander_s.png)![internal](https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/images/Internal_render_s.png)
+#### Phat Cases:
+[<img align="center" alt="externalcase" width="300px" src="https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/images/external_reander_s.png" />](https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/images/external_reander.png)[<img align="center" alt="internalcase" width="300px" src="https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/images/Internal_render_s.png" />](https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/images/Internal_render.png)
 
 ### Slim:
 ![phat_PCB](https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/images/slim_readme_s.png)
