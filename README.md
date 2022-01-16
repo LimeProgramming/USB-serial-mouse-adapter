@@ -112,7 +112,7 @@ Both the phat and slim variants of the PCB support being configured via serial t
 ### Accessing the terminal
 You can access the serial terminal in one of two ways:
 
-**Method 1: Serial Terminal Emulator**
+#### Method 1: Serial Terminal Emulator**
 You can open a serial terminal emulator (like kermit) on the computer you have the mouse connected to, connect to the same com port the mouse driver is using and press the enter key.
 ```
 Baud Rate: User Set
@@ -121,7 +121,7 @@ Stop Bits: User Set
 Parity: None
 Flow Control: None
 ```
-**Method 2: USB to TTL**
+#### Method 2: USB to TTL
 You can also connect the unused UART of the Pi Pico with a cheap USB to TTL device or even another Pico running the picoprobe firmware. Open your favorite serial terminal emulator (like putty) connect to the TTL device and tap the enter key. 
 ```
 Baud Rate: 115200
