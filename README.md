@@ -1,6 +1,6 @@
 # USB Serial Mouse Adapter
 A USB to serial mouse adapter!
-<img align="center" alt="ASSEMBLED_ADAPTER" width="700px" src="https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/images/assembled_small.jpg"/>
+<img align="center" alt="ASSEMBLED_ADAPTER" width="700px" src="https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/images/testbanner.png"/>
 
 ## Important
 I'm writing this readme before the newest firmware version comes out. 
