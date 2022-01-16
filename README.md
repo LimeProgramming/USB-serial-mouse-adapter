@@ -31,6 +31,7 @@ There are two variants of the PCB available in the KiCad folder, Phat and Slim f
 
 ### Phat:
 ![phat_PCB](https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/images/phat_readme_s.png)
+
 Also known as the original design.
 This PCB is the version I had made with the mindset of it being the default/one and only. 
 | Differences | Silkscreen | Description |
@@ -41,6 +42,7 @@ This PCB is the version I had made with the mindset of it being the default/one 
 
 ### Slim:
 ![phat_PCB](https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/images/slim_readme_s.png)
+
 Made for people be require the adapter to be as small as possible. Not much wider than the serial port itself. 
 
 ## Configuration
