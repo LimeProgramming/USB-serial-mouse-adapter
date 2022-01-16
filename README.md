@@ -1,6 +1,6 @@
 # USB Serial Mouse Adapter
 A USB to serial mouse adapter!
-![Assembled adaptor](https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/images/assembled_small.jpg)
+![Assembled adapter](https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/images/assembled_small.jpg)
 ## Important
 I'm writing this readme before the newest firmware version comes out. 
 Wait until this message goes away before considering this readme valid.
@@ -115,10 +115,10 @@ The unused UART of the pico can be accessed from the top two pins between the fu
 Forgot your settings and can't get the adapter working? Don't worry.
 There are three different ways to reset the adapter:
 
-#### Serial Terminal
+#### --- Serial Terminal
 As written above, you can reset the adapter back to default settings from the terminal. You can connect to the unused UART of the pico regardless of the settings of the mouse. 
 
-#### Small Flat Head Screwdriver
+#### --- Small Flat Head Screwdriver
 ![resetting flash](https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/images/reset_flash_s.jpg)
 
 **How To:**
@@ -127,7 +127,7 @@ As written above, you can reset the adapter back to default settings from the te
 3. Hold the flat head in position for two or three seconds for the Picos LED to start blinking.
 4. Once it is blinking, you can let go of the GPIO and press the reset button.
 5. The adapter will boot up with default settings.
-#### Nuke UF2
+#### --- Nuke UF2
 **How To:**
 1. Download the [flash_nuke.uf2](https://datasheets.raspberrypi.com/soft/flash_nuke.uf2) file.
 2. Connect the adapter to your PC using the microusb port built into the Pi Pico.
