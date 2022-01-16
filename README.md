@@ -119,8 +119,8 @@ There are three different ways to reset the adapter:
 As written above, you can reset the adapter back to default settings from the terminal. You can connect to the unused UART of the pico regardless of the settings of the mouse. 
 
 #### Small Flat Head Screwdriver
-By connecting GPIO 17 of the micro controller to ground on startup, you can reset the adapter back to default settings.
-![resetting flash](https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/images/reset_flash_s.jpg)**How To:**
+![resetting flash](https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/images/reset_flash_s.jpg)
+**How To:**
 1. Press a small flat head into the position shown above.
 2. Power on the adapter and the Picos built-in LED will glow solid.
 3. Hold the flat head in position for two or three seconds for the Picos LED to start blinking.
@@ -155,109 +155,3 @@ The build environment is a normal PicoSDK setup, there are several guides out th
 
 **PicoSDK version 1.2.0**
 The version of TinyUSB included with the newest version of the PicoSDK doesn't work great. You could probably use TinyUSB v10.1 on the newest PicoSDK but that's a bit messy.
-
-
-
-
-There are two primary ways of editing the settings of the USB-2-232
-
-### Headers
-The phat variant of the PCB includes headers in either of the form of dip switches or jumper headers. While not super configurable they do give quick access to some handy settings. The headers can be set while the micro controller is on with changes being applied in real-time or they can be set while the micro controller is off with changes being applied next time the controller is booted.
-
-| Num | Setting |
-|:--:|:--:|
-| 1 | Three Button Logitech Protocol |
-| 2 | MS Wheel Protocol |
-| 3 | 75% Mouse Travel Modifier / Dip 3 + 4 for 25% |
-| 4 | 50% Mouse Travel Modifier / Dip 3 + 4 for 25% |
-| 5 | 7N2|
-| 6 | 2400 Baud Rate|
-
-### Serial Terminal
-![serial terminal gif](https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/images/serial_term.gif)
-Both the phat and slim variants of the PCB support being configured via serial terminal. The serial terminal allows for more advanced configuration of the mouse adapter. Any additional settings added in a software update will be available here.
-
-### Serial Terminal Options
-+ Mouse Travel
-    + List Config
-            | List the current mouse travel settings
-    + XY Travel 
-            | XY mouse travel modifier 1% -> 200%
-    + X Travel
-             | X (Left and Right) mouse travel modifier 1% -> 200%
-    + Y Travel 
-            | Y ( Up and Down) mouse travel modifier 1% -> 200%
-    + Invert X
-            | Invert X (Left and Right) mouse movement.
-    + Invert Y
-            | Invert Y (Up and Down) mouse movement.
-+ Mouse Buttons
-    + List Config
-        | List the current mouse button settings
-    + Swap Left and Right
-        | Swap the left and right mouse buttons
-    + Use Forward and Backward
-        | Use the mouse forward and back buttons as alternative left and right buttons
-    + Swap Forward and Backward
-        | Swap forward and back buttons if they are being used as alternative left and right buttons
-+ Serial Settings
-    + List Config
-        | List the current serial settings
-    + Format
-        | One stop bit (7N1) or two stop bits (7N2) 
-    + Baud Rate
-        | 1200 2400 4800 9600 Baud Rates. Note you will need compatible mouse drivers.
-     + Mouse Type
-     | Microsoft 2 Button, Logitech Three Button or Microsoft Wheel mouse. Note: You may need to reconfigure your mouse driver upon change.
-+ Firmware
-    + Information | Information about the firmware
-    + Reset | Reset mouse settings back to default
-    + List Default Settings | List the default settings of the adapter. 
-+ Exit
-    + Return to mouse mode
-
-### Accessing the terminal
-You can access the serial terminal in one of two ways:
-
-#### Method 1: Serial Terminal Emulator
-You can open a serial terminal emulator (like kermit) on the computer you have the mouse connected to, connect to the same com port the mouse driver is using and press the enter key.
-```
-Baud Rate: User Set
-Data Bits: 7
-Stop Bits: User Set
-Parity: None
-Flow Control: None
-```
-#### Method 2: USB to TTL
-You can also connect the unused UART of the Pi Pico with a cheap USB to TTL device or even another Pico running the picoprobe firmware. Open your favorite serial terminal emulator (like putty) connect to the TTL device and tap the enter key. 
-```
-Baud Rate: 115200
-Data Bits: 8
-Stop Bits: 1
-Parity: None
-Flow Control: None
-```
-Connecting to the adapter in this way will allow you to change settings regardless of the adapter being connected to a PC or not. 
-The unused UART of the pico can be accessed from the top two pins between the full size USB port of the PCB and the micro USB port of the Pico.
-
-# KiCad
-There are two variants of the PCB available in the KiCad folder, Phat and Slim for your preference. The main circuit for both PCBs is the same so the firmware package will work on both PCBs.
-Check the renders from KiCad and the table below to see the differences!
-
-| Differences| Phat | Slim |
-|:--|:--:|:--:|
-| USB Pin Header | 🟢 | ❌ |
-| Dip Switches | 🟢 | ❌ |
-| Serial Pin Headers | 🟢 | ❌ |
-| Size  | ❌  | 🟢 |
-
-
-# Compiling the Firmware
-The default mouse settings can be edited in `default_config.h` prior to compilation. You can use this to set the mouses default settings for your own configuration. 
-
-The build environment is a normal PicoSDK setup, there are several guides out the for both Linux and Windows.  From experience the setup is easier in Linux. However there is one important thing you need to know:
-
-**PicoSDK version 1.2.0**
-The version of TinyUSB included with the newest version of the PicoSDK doesn't work great. You could probably use TinyUSB v10.1 on the newest PicoSDK but that's a bit messy.
-
-
