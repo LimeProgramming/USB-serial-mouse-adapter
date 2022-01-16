@@ -42,7 +42,7 @@ This PCB is the version I had made with the mindset of it being the default/one 
 
 
 #### Phat Cases:
-[<img align="center" alt="externalcase" width="300px" src="https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/images/external_reander_s.png" />](https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/images/external_reander.png)[<img align="center" alt="internalcase" width="300px" src="https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/images/Internal_render_s.png" />](https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/images/Internal_render.png)
+[<img align="center" alt="externalcase" width="320px" src="https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/images/external_reander_s.png" />](https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/images/external_reander.png)[<img align="center" alt="internalcase" width="320px" src="https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/images/Internal_render_s.png" />](https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/images/Internal_render.png)
 
 ### Slim:
 [<img align="center" alt="SLIM_PCB" width="650px" src="https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/images/slim_readme_s.png"/>](https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/images/slim_readme.png)
