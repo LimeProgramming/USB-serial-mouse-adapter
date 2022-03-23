@@ -23,6 +23,10 @@ Want to use an optical mouse on a 386 running Wolfenstein 3D? Well now you can! 
 - Sun
 - MM
 
+### KVMs
+KVM support has been added as of version 1.1.1. 
+It works fine on my **one** KVM that I have test with. Given that TinyUSB is a bit picky, your results may vary.
+
 ## PCBs
 There are two variants of the PCB available in the KiCad folder, Phat and Slim for your preference. The main circuit for both PCBs is the same so the firmware package will work on both PCBs.
 
@@ -106,7 +110,7 @@ Both the phat and slim variants of the PCB support being configured via serial t
         + Coast 
                 | Send the mouse movement incrementally (Slippy)
     + Cosine Smoothing
-            |Makes the cursor proportionally less sensitive at high speeds, leaving the movement mostly one to one at low speeds
+            | Makes the cursor proportionally less sensitive at high speeds, leaving the movement mostly one to one at low speeds
 
 + Mouse Buttons
     + List Config
