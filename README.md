@@ -23,9 +23,9 @@ Want to use an optical mouse on a 386 running Wolfenstein 3D? Well now you can! 
 - Sun
 - MM
 
-### KVMs
-KVM support has been added as of version 1.1.1. 
-It works fine on my **one** KVM that I have test with. Given that TinyUSB is a bit picky, your results may vary.
+### KVM:
+Support for use on KVMs has been added as of version 1.1.1. 
+It works fine on my **one**, startech branded, KVM that I have test with. Given that TinyUSB is a bit picky, your results may vary.
 
 ## PCBs
 There are two variants of the PCB available in the KiCad folder, Phat and Slim for your preference. The main circuit for both PCBs is the same so the firmware package will work on both PCBs.
