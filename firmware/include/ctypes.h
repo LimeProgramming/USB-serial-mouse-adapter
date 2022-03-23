@@ -34,6 +34,23 @@ enum PC_INIT_STATES {
   CTS_TOGGLED  = 2  // CTS was low, now high -> do ident.
 };
 
+// Mouse Movement Type
+enum MO_MVT_TYPE {
+  MO_MVT_ADDITIVE  = 0, // Cumulate and constrain the X and Y values.
+  MO_MVT_AVERAGE = 1, // Average X and Y values.
+  MO_MVT_COAST  = 2  // Coast X and Y values.
+};
+
+// Cosine Smoothed
+enum MO_MVT_COS {
+  MO_MVT_COS_DISABLED = 0,
+  MO_MVT_COS_LOW = 1,
+  MO_MVT_COS_MEDIUM = 2,
+  MO_MVT_COS_HIGH = 3,
+  MO_MVT_COS_VERYHIGH = 4
+};
+
+
 /* -------------------- Mouse Packet Structure -------------------- */
 /*  This is the hold the mouse state for the previous cycle. 
     Each cycle is defined by the Baud rate. */
@@ -110,6 +127,12 @@ typedef struct  {
     bool invert_x;
     bool invert_y;
 
+    // Mouse Movement Type enum MO_MVT_TYPE
+    uint8_t mouse_movt_type;
+
+    // USe cosine smoothing
+    uint8_t use_cosine_smoothing;
+
     // Firmware Versioning
     uint8_t FW_V_MAJOR;
     uint8_t FW_V_MINOR;
@@ -132,35 +155,41 @@ extern PERSISTENT_MOUSE_DATA pmData;
 
 typedef struct {                            
 
-    // CTS state tracker | taken from Aviancer's code since it was more straightforward than what I had already
-    uint8_t pc_state;
+  // CTS state tracker | taken from Aviancer's code since it was more straightforward than what I had already
+  uint8_t pc_state;
 
-    // serial state tracker. 0 = Mouse mode | 1 = terminal mode.
-    uint8_t serial_state;
+  // yeah that should be a bitwise thing but eh
+  // serial state tracker. 0 = Mouse mode | 1 = terminal mode uart 0 | 2 = terminal mode uart 1 | 3 = paused
+  uint8_t serial_state;
 
-    // Current Processed Mouse Packet.                    
-    MOUSE_PKT mpkt;                       
+  // Current Processed Mouse Packet.                    
+  MOUSE_PKT mpkt;                       
 
-    // Raw Mouse data.                    
-    MOUSE_RPKT rmpkt;    
+  // Raw Mouse data.                    
+  MOUSE_RPKT rmpkt;    
 
-    // Persisten Mouse data, survives reboots.
-    PERSISTENT_MOUSE_DATA persistent;
+  // Persisten Mouse data, survives reboots.
+  PERSISTENT_MOUSE_DATA persistent;
 
-    // One Byte Delay Time, calculated on startup.
-    int32_t serialdelay_1B;        
+  // One Byte Delay Time, calculated on startup.
+  int32_t serialdelay_1B;        
 
-    // Three Byte Delay Time, calculated on startup.         
-    int32_t serialdelay_3B;
+  // Three Byte Delay Time, calculated on startup.         
+  int32_t serialdelay_3B;
 
-    // Four Byte Delay Time, calculated on startup.
-    int32_t serialdelay_4B;
+  // Four Byte Delay Time, calculated on startup.
+  int32_t serialdelay_4B;
 
-    // M3Z | Ident info serial mouse.
-    uint8_t intro_pkts[3];                  
+  // M3Z | Ident info serial mouse.
+  uint8_t intro_pkts[3];                  
 
-    // Is mouse connected flag
-    bool mouse_conn;
+  // Is mouse connected flag
+  uint8_t mouse_count;
+  
+  // counr the number of mouse updates between serial cycles. USed for AVG mouse movement
+  uint8_t mouse_movt_ticker;
+
+
 
 } MOUSE_DATA;
 
@@ -175,6 +204,8 @@ extern MOUSE_DATA mouse_data;
 enum MO_SPEED MO_SPEED;
 enum MO_TYPE MO_TYPE;
 enum PC_INIT_STATES PC_INIT_STATES;
+enum MO_MVT_TYPE MO_MVT_TYPE;
+enume MO_MVT_COS MO_MVT_COS;
 //PersistentData persistentData;
 
 #else
@@ -182,6 +213,8 @@ enum PC_INIT_STATES PC_INIT_STATES;
 extern enum MO_SPEED MO_SPEED;
 extern enum MO_TYPE MO_TYPE;
 extern enum PC_INIT_STATES PC_INIT_STATES;
+extern enum MO_MVT_TYPE MO_MVT_TYPE;
+extern enum MO_MVT_COS MO_MVT_COS;
 //extern PersistentData persistentData;
 
 #endif

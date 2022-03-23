@@ -5,21 +5,21 @@ set(TARGET "usb-2-232")
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 
-if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE Release)
-endif()
+# initalize pico_sdk from installed location
+# (note this can come from environment, CMake cache etc)
+set(PICO_SDK_PATH "C:/Pico/pico-sdk")
+
+# Pull in Raspberry Pi Pico SDK (must be before project)
+include(pico_sdk_import.cmake)
+
+#if(NOT CMAKE_BUILD_TYPE)
+#  set(CMAKE_BUILD_TYPE Release)
+#endif()
 
 #set( CMAKE_CXX_FLAGS "-Wall -Wextra")
 #set( CMAKE_C_FLAGS "-Wall -Wextra")
 set( CMAKE_C_FLAGS_RELEASE "-O2" )
 set( CMAKE_CXX_FLAGS_RELEASE "-O2" )
-
-# initalize pico_sdk from installed location
-# (note this can come from environment, CMake cache etc)
-set(PICO_SDK_PATH "C:/Pico/pico-sdk-1.2.0")
-
-# Pull in Raspberry Pi Pico SDK (must be before project)
-include(pico_sdk_import.cmake)
 
 project(usb-2-232 C CXX ASM)
 
@@ -27,19 +27,23 @@ project(usb-2-232 C CXX ASM)
 pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
-
-add_executable(usb-2-232 usb-2-232.c include/utils.c include/serial.c include/hid_app.c)
+#add_executable(usb-2-232 ${CMAKE_CURRENT_LIST_DIR})
+add_executable(usb-2-232 
+  usb-2-232.c
+  include/hid_app.c
+  include/serial.c
+  include/utils.c
+)
 
 # Make sure TinyUSB can find tusb_config.h
-target_include_directories(usb-2-232 PUBLIC
-        ${CMAKE_CURRENT_LIST_DIR})
-
-include_directories(include/)
-link_directories(include/)
+target_include_directories(usb-2-232 PUBLIC ${CMAKE_CURRENT_LIST_DIR})
 
 # In addition to pico_stdlib required for common PicoSDK functionality, add dependency on tinyusb_host
 # for TinyUSB device support and tinyusb_board for the additional board support library used by the example
 target_link_libraries(usb-2-232 pico_stdlib hardware_flash hardware_sync tinyusb_host tinyusb_board)
+
+include_directories(include/)
+link_directories(include/)
 
 pico_set_program_name(${TARGET} "usb-2-232")
 pico_set_program_description(${TARGET} "Pico usb to serial mouse adaptor.")

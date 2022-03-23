@@ -150,19 +150,19 @@ const char terminal_menu_headings[5][30] =
     { "===== Main Menu =====\n" }, { "===== Mouse Travel =====\n" }, { "===== Mouse Buttons =====\n" }, { "===== Serial Settings =====\n" }, { "===== Firmware =====\n" }
 };
 
-const char terminal_menus[5][110] =
+const char terminal_menus[5][140] =
 {
     { "1: Mouse Travel\n2: Mouse Buttons\n3: Serial Settings\n4: Firmware\n0: Exit\n" },
-    { "1: List Config\n2: XY Travel\n3: X Travel\n4: Y Travel\n5: Invert X\n6: Invert Y\n0: Back\n" },
+    { "1: List Config\n2: XY Travel\n3: X Travel\n4: Y Travel\n5: Invert X\n6: Invert Y\n7: Movement Type\n8: Cosine Smoothing\n0: Back\n" },
     { "1: List Config\n2: Swap Left and Right\n3: Use Forward and Backward\n4: Swap Forward and Backward\n0: Back\n" },
     { "1: List Config\n2: Format\n3: Baud Rate\n4: Mouse Type\n0: Back\n" },
     { "1: Information\n2: Reset\n3: List Default Settings\n0: Back\n"}
 };
 
-const uint8_t terminal_valids[5][6] = 
+const uint8_t terminal_valids[5][8] = 
 {
     { 1, 2, 3, 4},
-    { 1, 2, 3, 4, 5, 6},
+    { 1, 2, 3, 4, 5, 6, 7, 8},
     { 1, 2, 3, 4},
     { 1, 2, 3, 4},
     { 1, 2, 3}
@@ -487,9 +487,9 @@ void term_handle_options(uart_inst_t * com, ushort level1, ushort level2) {
                 memset(helpMSG, 0, 250);  
 
                 if ( mouse_data.persistent.invert_x ){
-                    strcpy(helpMSG, "Set Invert X. 0 -> Disabled | 1 -> Enabled | Currently Enabled");
+                    strcpy(helpMSG, "Set Invert X. 0 -> Disabled | 1 -> Enabled | Currently: Enabled");
                 } else {
-                    strcpy(helpMSG, "Set Invert X. 0 -> Disabled | 1 -> Enabled | Currently Disabled");
+                    strcpy(helpMSG, "Set Invert X. 0 -> Disabled | 1 -> Enabled | Currently: Disabled");
                 }
 
                 ret = get_option_input(com, 0, 1,  helpMSG, false);
@@ -506,9 +506,9 @@ void term_handle_options(uart_inst_t * com, ushort level1, ushort level2) {
                 memset(helpMSG, 0, 250);  
 
                 if ( mouse_data.persistent.invert_y ){
-                    strcpy(helpMSG, "Set Invert Y. 0 -> Disabled | 1 -> Enabled | Currently Enabled");
+                    strcpy(helpMSG, "Set Invert Y. 0 -> Disabled | 1 -> Enabled | Currently: Enabled");
                 } else {
-                    strcpy(helpMSG, "Set Invert Y. 0 -> Disabled | 1 -> Enabled | Currently Disabled");
+                    strcpy(helpMSG, "Set Invert Y. 0 -> Disabled | 1 -> Enabled | Currently: Disabled");
                 }
 
                 ret = get_option_input(com, 0, 1,  helpMSG, false);
@@ -520,10 +520,74 @@ void term_handle_options(uart_inst_t * com, ushort level1, ushort level2) {
                     term_save_settings(com); 
                     }
                 break;
+
+            case 7: // 7 Movement Type
+                memset(helpMSG, 0, 250);  
+
+                term_writes_crlf(com, "Set Movement Type. USB mice talk faster than serial mice, movement type decides what to do with the backlog between serial mouse updates. \n");
+                term_writes_crlf(com, "Additive: Sum the mouse movement (Sensitive)\n");
+                term_writes_crlf(com, "Average: Avg the mouse movement  (Insensitive)\n");
+                term_writes_crlf(com, "Coast: Send the mouse movement incrementally (Slippy)\n");
+
+                switch ( mouse_data.persistent.mouse_movt_type )
+                {
+                    case MO_MVT_ADDITIVE:
+                        strcpy(helpMSG, "0 -> Additive | 1 -> Average | 2 -> Coast | Currently: Additive");
+                    break;
+                    case MO_MVT_AVERAGE:
+                        strcpy(helpMSG, "0 -> Additive | 1 -> Average | 2 -> Coast | Currently: Average");
+                    break;
+                    case MO_MVT_COAST:
+                        strcpy(helpMSG, "0 -> Additive | 1 -> Average | 2 -> Coast | Currently: Coast");
+                    break;
+                }
+
+                ret = get_option_input(com, 0, 2,  helpMSG, false);
+
+                     if ( ret == 32000 )                                        { post_invalid(com); } 
+                else if ( ret == mouse_data.persistent.mouse_movt_type )        { term_writes_crlf(com, "No Change\n"); } 
+                else    {
+                    mouse_data.persistent.mouse_movt_type = ret;
+                    term_save_settings(com); 
+                    }
+                break;
+
+            case 8: // Cosine smoothing
+                memset(helpMSG, 0, 250); 
+                
+                term_writes_crlf(com, "Set Cosine Smoothing. Makes the cursor proportionally less sensitive at high speeds, leaving the movement mostly one to one at low speeds.\n"); 
+
+                switch ( mouse_data.persistent.use_cosine_smoothing )
+                {
+                    case MO_MVT_COS_DISABLED:
+                        strcpy(helpMSG, "0 -> Disabled | 1 -> Low | 2 -> Medium | 3 -> High | 4 -> Very High\nCurrently: Disabled");
+                    break;
+                    case MO_MVT_COS_LOW:
+                        strcpy(helpMSG, "0 -> Disabled | 1 -> Low | 2 -> Medium | 3 -> High | 4 -> Very High\nCurrently: Low");
+                    break;
+                    case MO_MVT_COS_MEDIUM:
+                        strcpy(helpMSG, "0 -> Disabled | 1 -> Low | 2 -> Medium | 3 -> High | 4 -> Very High\nCurrently: Medium");
+                    break;
+                    case MO_MVT_COS_HIGH:
+                        strcpy(helpMSG, "0 -> Disabled | 1 -> Low | 2 -> Medium | 3 -> High | 4 -> Very High\nCurrently: High");
+                    break;
+                    case MO_MVT_COS_VERYHIGH:
+                        strcpy(helpMSG, "0 -> Disabled | 1 -> Low | 2 -> Medium | 3 -> High | 4 -> Very High\nCurrently: Very High");
+                    break;
+                }
+                ret = get_option_input(com, 0, 4,  helpMSG, false);
+
+                     if ( ret == 32000 )                                            { post_invalid(com); } 
+                else if ( ret == mouse_data.persistent.use_cosine_smoothing )       { term_writes_crlf(com, "No Change\n"); } 
+                else    {
+                    mouse_data.persistent.use_cosine_smoothing = ret;
+                    term_save_settings(com); 
+                    }
+                break;
         }
 
         break;
-    
+
     // 2: Mouse Buttons
     case 2:
 
@@ -534,9 +598,9 @@ void term_handle_options(uart_inst_t * com, ushort level1, ushort level2) {
                 memset(helpMSG, 0, 250);  
 
                 if ( mouse_data.persistent.swap_left_right ){
-                    strcpy(helpMSG, "Swap Left and Right Clicks. 0 -> Disabled | 1 -> Enabled | Currently Enabled");
+                    strcpy(helpMSG, "Swap Left and Right Clicks. 0 -> Disabled | 1 -> Enabled | Currently: Enabled");
                 } else {
-                    strcpy(helpMSG, "Swap Left and Right Clicks. 0 -> Disabled | 1 -> Enabled | Currently Disabled");
+                    strcpy(helpMSG, "Swap Left and Right Clicks. 0 -> Disabled | 1 -> Enabled | Currently: Disabled");
                 }
 
                 ret = get_option_input(com, 0, 1,  helpMSG, false);
@@ -554,9 +618,9 @@ void term_handle_options(uart_inst_t * com, ushort level1, ushort level2) {
                 memset(helpMSG, 0, 250);  
                 
                 if ( mouse_data.persistent.use_forward_backward ){
-                    strcpy(helpMSG, "Use Forward and Backward buttons as alternative Left and Right buttons.\n0 -> Disabled | 1 -> Enabled | Currently Enabled");
+                    strcpy(helpMSG, "Use Forward and Backward buttons as alternative Left and Right buttons.\n0 -> Disabled | 1 -> Enabled | Currently: Enabled");
                 } else {
-                    strcpy(helpMSG, "Use Forward and Backward buttons as alternative Left and Right buttons.\n0 -> Disabled | 1 -> Enabled | Currently Disabled");
+                    strcpy(helpMSG, "Use Forward and Backward buttons as alternative Left and Right buttons.\n0 -> Disabled | 1 -> Enabled | Currently: Disabled");
                 }
 
                 ret = get_option_input(com, 0, 1,  helpMSG, false);
@@ -574,9 +638,9 @@ void term_handle_options(uart_inst_t * com, ushort level1, ushort level2) {
                 memset(helpMSG, 0, 250);  
 
                 if ( mouse_data.persistent.swap_forward_backward ){
-                    strcpy(helpMSG, "Swap Forward and Backward Buttons\n0 -> Disabled | 1 -> Enabled | Currently Enabled");
+                    strcpy(helpMSG, "Swap Forward and Backward Buttons\n0 -> Disabled | 1 -> Enabled | Currently: Enabled");
                 } else {
-                    strcpy(helpMSG, "Swap Forward and Backward Buttons\n0 -> Disabled | 1 -> Enabled | Currently Disabled");
+                    strcpy(helpMSG, "Swap Forward and Backward Buttons\n0 -> Disabled | 1 -> Enabled | Currently: Disabled");
                 }
 
                 ret = get_option_input(com, 0, 1,  helpMSG, false);
@@ -602,9 +666,9 @@ void term_handle_options(uart_inst_t * com, ushort level1, ushort level2) {
                 memset(helpMSG, 0, 250);  
 
                 if ( mouse_data.persistent.doublestopbit ){
-                    strcpy(helpMSG, "Set Serial Format | 0 -> 7N1 | 1 -> 7N2 | Currently 7N2\nNote: Any change will happen upon exit of terminal");
+                    strcpy(helpMSG, "Set Serial Format | 0 -> 7N1 | 1 -> 7N2 | Currently: 7N2\nNote: Any change will happen upon exit of terminal");
                 } else {
-                    strcpy(helpMSG, "Set Serial Format | 0 -> 7N1 | 1 -> 7N2 | Currently 7N1\nNote: Any change will happen upon exit of terminal");
+                    strcpy(helpMSG, "Set Serial Format | 0 -> 7N1 | 1 -> 7N2 | Currently: 7N1\nNote: Any change will happen upon exit of terminal");
                 }
 
                 ret = get_option_input(com, 0, 1,  helpMSG, false);
@@ -902,6 +966,39 @@ void serial_terminal(uart_inst_t * com, uint64_t ddd) {
 
                         if ( mouse_data.persistent.invert_y )   { term_writes_crlf(com, "Invert Y: True\n" ); }
                         else                                    { term_writes_crlf(com, "Invert Y: False\n" ); }
+                        
+                        switch ( mouse_data.persistent.mouse_movt_type)
+                        {      
+                            case MO_MVT_ADDITIVE:
+                                term_writes_crlf(com, "Movement Type: Additive\n" );
+                            break;
+                            case MO_MVT_AVERAGE:
+                                term_writes_crlf(com, "Movement Type: Average\n" );
+                            break;
+                            case MO_MVT_COAST:
+                                term_writes_crlf(com, "Movement Type: Coast\n" );
+                            break;
+                        }
+
+                        switch ( mouse_data.persistent.use_cosine_smoothing )
+                        {
+                            case MO_MVT_COS_DISABLED:
+                                term_writes_crlf(com, "Cosine Smoothing: False\n" );
+                            break;
+                            case MO_MVT_COS_VERYHIGH:
+                                term_writes_crlf(com, "Cosine Smoothing: Very High\n" );
+                            break;
+                            case MO_MVT_COS_HIGH:
+                                term_writes_crlf(com, "Cosine Smoothing: High\n" );
+                            break;
+                            case MO_MVT_COS_MEDIUM:
+                                term_writes_crlf(com, "Cosine Smoothing: Medium\n" );
+                            break;
+                            case MO_MVT_COS_LOW:
+                                term_writes_crlf(com, "Cosine Smoothing: Low\n" );
+                            break;
+
+                        }
 
                         // New Line
                         term_writec_crlf(com, '\n');

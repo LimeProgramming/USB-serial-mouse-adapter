@@ -91,6 +91,35 @@ static bool default_invert_x = false;
 // Invert Y axis (Up and Down movement)
 static bool default_invert_y = false;
 
+// Added version 1.1.X
+/*
+/==-- USB mice communicate with the pico faster than the pico communicates with the serial port. 
+/==-- Movement type determines what is done wit the extra packets of data. 
+/==-- Note: Applies only to X and Y mouse movement
+​/==--
+/==-- ADDITIVE:
+/==--       Adds up the mouse movement and sends it off in the next serial packet. 
+/==--       Results in a very sensitive feeling mouse, sometimes too sensitive  and that's where Averaging comes in.
+/==--
+/==-- AVERAGE:
+/==--       Finds the average change in mouse movement and sends that off in the next serial packet.
+/==--       Results in a fairly insensitive  feeling mouse, could be useful for a higher DPI mouse or personal preference.
+/==--
+/==-- COAST:
+/==--       Unlike Additive and Average; Coast does not throw away extra movement when the mouse is moved quickly, instead it incrementally sends out the movement. 
+/==--       Results in a cursor feeling like it's skidding along on ice at high speeds. I don't know where it would be useful but it's fun to mess with!
+/==-- 0- > Additive axis movement | 1 -> Average axis movement | 2-> Coast
+*/
+static uint8_t mouse_movt_type = 0;
+
+/*
+/==-- COSINE SMOOTHING 
+/==-- Makes the cursor proportionally less sensitive  at high speeds, leaving the movement mostly one to one at low speeds. 
+/==-- This was added as an attempt to mitigate the problem of the much more sensitive  optical mouse overshooting icons on a low res screen. 
+/==-- It could be useful for point and click DOS games but is not recommended for games where mouse movement controls a camera.
+/==-- 0 -> Disabled | 1 -> Low | 2 -> Medium | 3 -> High | 4 - > Very High
+*/
+static uint8_t use_cosine_smoothing = 0;
 
 /*---------------------------------------*/
 //            Advanced Settings          //

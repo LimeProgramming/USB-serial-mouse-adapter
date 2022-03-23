@@ -21,7 +21,7 @@
 //                 UTILS                 //
 /*---------------------------------------*/
 
-int constraini(int16_t value, int8_t min, int8_t max) {
+int constraini(int16_t value, int16_t min, int16_t max) {
   if(value > max) { return max; }
   if(value < min) { return min; }
   return value;
@@ -54,6 +54,23 @@ void machine_reboot()
   watchdog_reboot(0, SRAM_END, 0);
   for (;;) { __wfi(); }
   return;
+}
+
+void blink_aled(uint gpio, uint8_t code)
+{
+  bool pre_state = gpio_get(gpio);
+  uint8_t errcodes[]= {1, 0, 1, 0, 1, 0, 1, 0, 1};
+
+  gpio_put(gpio, 0);
+
+  for ( uint8_t i = 0 ; i< sizeof(errcodes); i++ )
+  {
+    gpio_put(gpio, errcodes[i]);
+    sleep_ms(100);
+  }
+
+  gpio_put(gpio, pre_state);
+  
 }
 
 
@@ -100,36 +117,21 @@ bool terminal_timer_callback(struct repeating_timer *t) {
   return true;                                            // Keep running the timer
 }
 
-void startTerminalTimer() {                               // Create a 2 second timer for checking for terminal input
-    add_repeating_timer_us(2000000, terminal_timer_callback, NULL, &terminal_timer);
+// Create a 2 second timer for checking for terminal input
+void startTerminalTimer() {                               
+  add_repeating_timer_us(2000000, terminal_timer_callback, NULL, &terminal_timer);
+  return;
 }
 
-void stopTerminalTimer() {                                // Stop Our terminal timer
-    cancel_repeating_timer(&terminal_timer);    
+// Stop Our terminal timer
+void stopTerminalTimer() {                                
+  cancel_repeating_timer(&terminal_timer);    
+  return;
 }
 
-// Mouse functionality timer
-// -----------------------------
-struct repeating_timer mouse_timer;
-//volatile bool mouse_timer_running = false;
-
-bool mouse_timer_callback(struct repeating_timer *t) {
-    if ( (mouse_data.pc_state == CTS_TOGGLED && mouse_data.mouse_conn) || DEBUG ) { postSerialMouse(); }
-    return true;
-}
-
-void startMouseTimer() {                                  // start our mouse timer
-    if  ( mouse_data.persistent.mousetype == TWOBTN ) {
-        add_repeating_timer_us(mouse_data.serialdelay_3B, mouse_timer_callback, NULL, &mouse_timer);
-    } 
-    else {
-        add_repeating_timer_us(mouse_data.serialdelay_4B, mouse_timer_callback, NULL, &mouse_timer);
-    }
-}
-
-void stopMouseTimer() {                                   // Stop our mouse timer
-    cancel_repeating_timer(&mouse_timer);    
-}
+/*---------------------------------------*/
+//          Mouse Settings Stuff         //
+/*---------------------------------------*/
 
 // Recalculate the serial delay when the baud rate is changed. 
 void calcSerialDelay(){
@@ -145,10 +147,6 @@ void calcSerialDelay(){
   }
 
 }
-
-/*---------------------------------------*/
-//          Mouse Settings Stuff         //
-/*---------------------------------------*/
 
 // Set Serial Baid rate from the headers
 void setDipSerialBaud() {
@@ -198,56 +196,68 @@ volatile bool DIPSW_7N2_IRQ = false;
 volatile bool DIPSW_2400_IRQ = false;
 
 int64_t mouse_type_callback(alarm_id_t id, void *user_data) {  
-  if ( DEBUG ) { printf("Mouse Type Callback called\n"); }    // Dev print out.
 
-  stopMouseTimer();                     // Stop the serial mouse timer 
+  #if DEBUG > 0 
+    printf("Mouse Type Callback called\n"); 
+  #endif
+
+  mouse_data.serial_state = 3;          // Stop the serial mouse timer 
   setDipMouseType();                    // Set Mouse Type from headers
   updateStoredDipswitchs();             // Get Dip Switch state
   savePersistentSet();                  // Save Updated Settings
   DIPSW_MOUSE_IRQ = false;              // Flag that we are done with this func
-  startMouseTimer();                    // Stop the serial mouse timer
+  mouse_data.serial_state = 0;          // Start the serial mouse timer 
 
   return 0;                                   
 }
 
 int64_t mouse_speed_callback(alarm_id_t id, void *user_data) {   
-  if ( DEBUG ) { printf("Mouse Speed Callback called\n"); }    // Dev print out.
 
-  stopMouseTimer();                     // Stop the serial mouse timer 
+  #if DEBUG > 0 
+    printf("Mouse Speed Callback called\n"); 
+  #endif
+  
+  mouse_data.serial_state = 3;          // Stop the serial mouse timer 
   setDipMouseSpeed();                   // Get mouse speed from the headers
   updateStoredDipswitchs();             // Get Dip Switch state
   savePersistentSet();                  // Save persistent settings       
   DIPSW_XYSPEED_IRQ = false;            // Flag that we are done with this func
-  startMouseTimer();                    // Stop the serial mouse timer
+  mouse_data.serial_state = 0;          // Start the serial mouse timer 
 
   return 0;                                   
 }
 
 int64_t serial_format_callback(alarm_id_t id, void *user_data) {   
-  if ( DEBUG ) { printf("Serial Format Callback called\n"); }    // Dev print out.
 
-  stopMouseTimer();                     // Stop the serial mouse timer
+  #if DEBUG > 0 
+    printf("Serial Format Callback called\n");
+  #endif
+
+  mouse_data.serial_state = 3;          // Stop the serial mouse timer 
   mouse_data.persistent.doublestopbit = !gpio_get(DIPSW_7N2);     // get the header state
   refresh_serial_uart();                // Refresh the uart with updated settings
   calcSerialDelay();
   updateStoredDipswitchs();             // Store header state
   savePersistentSet();                  // save persistent
   DIPSW_7N2_IRQ = false;                // Flag that the func is done
-  startMouseTimer();                    // Stop the serial mouse timer
+  mouse_data.serial_state = 0;          // Start the serial mouse timer 
 
   return 0;                                   
 }
 
 int64_t serial_speed_callback(alarm_id_t id, void *user_data) {  
-  if ( DEBUG ) { printf("Serial Speed Callback called\n"); }    // Dev print out.
 
-  stopMouseTimer();           // Stop the serial mouse timer
+  #if DEBUG > 0 
+    printf("Serial Speed Callback called\n");
+  #endif
+
+  mouse_data.serial_state = 3;// Stop the serial mouse timer 
   setDipSerialBaud();         // Set new Baud rate based on dip switches
   refresh_serial_uart();      // Reinit serial with updated settings
   calcSerialDelay();          // Recalulate serial delay used by the main mouse timer
   updateStoredDipswitchs();   // Poll all dip switches for state
   savePersistentSet();        // Store all settings
-  startMouseTimer();          // Restart Mouse timer
+  mouse_data.serial_state = 0;// Start the serial mouse timer 
   DIPSW_2400_IRQ = false;     // Flag that this func is finished
   return 0;                                   
 }
@@ -332,6 +342,10 @@ void loadPersistentSetDefaults() {
   mouse_data.persistent.ST_DIPSW_7N2 = 1;
   mouse_data.persistent.ST_DIPSW_2400 = 1;
 
+  // Added version 1.1.X
+  mouse_data.persistent.mouse_movt_type;
+  mouse_data.persistent.use_cosine_smoothing;
+
   // Mouse type range
   switch ( default_mousetype )
   {
@@ -389,20 +403,37 @@ void initPersistentSet() {
   // Load current settings from flash. A read from blank returns an array of bytes set to "255".
   loadPersistentSet();
   
-  // IF first rum || The current revision number is higher than the stored value.
-  if ( mouse_data.persistent.firstrun == 255 || V_REVISION > mouse_data.persistent.FW_V_REVISION  ) 
-  {
-    if ( mouse_data.persistent.firstrun == 255 ) { printf("fristrun: %d", mouse_data.persistent.firstrun ); }
 
-    if ( V_REVISION > mouse_data.persistent.FW_V_REVISION ) { printf("revision: %d", mouse_data.persistent.FW_V_REVISION); }
+  /* ----- First Run or FW Required Reload ----- */
+  // ==================================================
+  // IF First run or revision number higher than stored revision number, load default
+  if ( mouse_data.persistent.firstrun == 255 || V_REVISION > mouse_data.persistent.FW_V_REVISION  ) {
 
-    loadPersistentSetDefaults();
-    saveset = true;
+    #if DEBUG > 0
+
+    printf("fristrun: %d\n", mouse_data.persistent.firstrun ); 
+    printf("revision: %d\n", mouse_data.persistent.FW_V_REVISION);
+
+    #endif
+    
+    loadPersistentSetDefaults();  // Load the default settings from default_config.h
+    savePersistentSet();          // Save new persistent Data
+    machine_reboot();             // Reboot Pico
   } 
+  
+  /* ----- If The Firmware Version Has Changed ----- */
+  // ==================================================
+  // Just store the new verion information
+  if ( (V_MAJOR > mouse_data.persistent.FW_V_MAJOR || V_MINOR > mouse_data.persistent.FW_V_MINOR ) && saveset == false ){
+    mouse_data.persistent.FW_V_MAJOR = V_MAJOR;
+    mouse_data.persistent.FW_V_MINOR = V_MINOR;
 
-  /* -------------------------------------------------------------------------------- */
-  /*  Use Dipswitch data if dipswitch is closed and it doesn't match the stored data
-  /* -------------------------------------------------------------------------------- */
+    saveset = true;
+  }
+
+  /* ----- DIPSWITCHES----- */
+  // ==================================================
+  // Use Dipswitch data if dipswitch is closed and it doesn't match the stored data
 
   // If stored dipswitch state does not match current dipswitch state.
   if ( ( mouse_data.persistent.ST_DIPSW_THREEBTN != gpio_get(DIPSW_THREEBTN) ) || ( mouse_data.persistent.ST_DIPSW_WHEEL != gpio_get(DIPSW_WHEEL) ) ) {
@@ -435,13 +466,15 @@ void initPersistentSet() {
     saveset = true;
   } 
 
-  // If we need to save some settings. Save'm
-  if ( saveset ) {
-    savePersistentSet();
-  }
 
-  // DEBUG mouse settings print out.
-  if ( DEBUG ) {
+  /* ----- Save Any Changes----- */
+  // ==================================================
+  if ( saveset ) { savePersistentSet(); }
+
+
+  /* ----- Handy DEBUG printout----- */
+  // ==================================================
+  #if DEBUG > 0
     printf("Mouse Settings print out\n");
 
     sleep_ms(5);
@@ -458,6 +491,13 @@ void initPersistentSet() {
       mouse_data.persistent.xytravel_percentage,
       mouse_data.persistent.xtravel_percentage,
       mouse_data.persistent.ytravel_percentage
+    );
+
+    sleep_ms(5);
+
+    printf("mouse_movt_type: %d | use_cosine_smoothing: %d\n",
+      mouse_data.persistent.mouse_movt_type,
+      mouse_data.persistent.use_cosine_smoothing
     );
 
     sleep_ms(5);
@@ -482,7 +522,7 @@ void initPersistentSet() {
       mouse_data.persistent.invert_x,
       mouse_data.persistent.invert_y
     );
-  }
+  #endif
 }
 
 void savePersistentSet() {
@@ -516,6 +556,10 @@ void savePersistentSet() {
   buffer[18] = mouse_data.persistent.ST_DIPSW_50XYSPEED;
   buffer[19] = mouse_data.persistent.ST_DIPSW_7N2;
   buffer[20] = mouse_data.persistent.ST_DIPSW_2400;
+
+  // Added version 1.1.X
+  buffer[21] = mouse_data.persistent.mouse_movt_type;
+  buffer[22] = mouse_data.persistent.use_cosine_smoothing;
 
   // Halt all interrupts to avoid errors
   ints = save_and_disable_interrupts();                                  
@@ -563,6 +607,10 @@ void loadPersistentSet() {
   mouse_data.persistent.ST_DIPSW_7N2 = flash_target_contents[19];
   mouse_data.persistent.ST_DIPSW_2400 = flash_target_contents[20];
 
+  // Added version 1.1.X
+  mouse_data.persistent.mouse_movt_type = flash_target_contents[21];
+  mouse_data.persistent.use_cosine_smoothing = flash_target_contents[22]; 
+  
   return;
 }
 
@@ -597,7 +645,7 @@ void blink_led_task(void)
 //             Travel Limits             //
 /*---------------------------------------*/
 
-int8_t travel_limit(int16_t val, int8_t percentage, uint8_t constainval)
+int16_t travel_limit(int16_t val, uint8_t percentage, uint16_t constainval)
 {
   // Do that first to avoid unnesseccary processing 
   if ( val == 0 || percentage == 0 ) {
@@ -611,7 +659,7 @@ int8_t travel_limit(int16_t val, int8_t percentage, uint8_t constainval)
     if ( percentage != 100 ) {
 
       // Do the actual math
-      j = (int16_t) round( ( val / (100 / percentage) ) );
+      j = (int16_t) round( ( val * (percentage / 100.0) ) );
 
       // Return now if zero 
       if (j == 0) {return 0;}
@@ -627,7 +675,38 @@ int8_t travel_limit(int16_t val, int8_t percentage, uint8_t constainval)
 
     return j;
   }
+}
 
+int16_t travel_limit_d(int16_t val, double percentage, uint16_t constainval)
+{
+  // Do that first to avoid unnesseccary processing 
+  if ( val == 0 || percentage == 0 ) {
+    return 0;
+
+  }else{
+
+    int16_t j;
+
+    // If there is a travel percentage 
+    if ( percentage != 100 ) {
+
+      // Do the actual math
+      j = (int16_t) round( val * percentage );
+
+      // Return now if zero 
+      if (j == 0) {return 0;}
+
+    }else{
+      j = val;
+    }
+
+    // Constrain 
+    if ( constainval != 0 ){
+      j = constraini(j, (constainval * -1), constainval);
+    }
+
+    return j;
+  }
 }
 
 /*---------------------------------------*/
@@ -655,40 +734,26 @@ void set_mouseclick(uint8_t spot, bool value)
     // if value is false, flag flip-flop for toggling on the next cycle
     else if ( !value && mouse_data.rmpkt.btnFlipFlop[spot] ) { mouse_data.rmpkt.btnToggle[spot] = true; }     
   }
+
+  return;
 }
+
 
 // Point the mouse report data to the correct places
 // Called by TinyUSB
 void process_mouse_report(hid_mouse_report_t const * report)
 { 
-  /* ---------- Left and Right Buttons ---------- */
-  /* Bitwise op values from TinyUSB 
-      MOUSE_BUTTON_LEFT: 1
-      MOUSE_BUTTON_RIGHT: 2
-      MOUSE_BUTTON_BACKWARD: 8 -> I'm calling this forward
-      MOUSE_BUTTON_FORWARD: 16 -> I'm calling this back*/ 
+  /* ---------- LEft & Right Button State ---------- */
 
-  uint8_t leftbutton = 1;
-  uint8_t rightbutton = 2;
-  
-  // If Left and right are swapped 
-  if ( mouse_data.persistent.swap_left_right ) { 
-    leftbutton = 2; rightbutton = 1;
-  }
+  // If Left and right buttons are swapped
+  uint8_t leftbutton = mouse_data.persistent.swap_left_right ? 2 : 1;
+  uint8_t rightbutton = mouse_data.persistent.swap_left_right ? 1 : 2;
 
   // If we're using the forward and backward buttons.
   if ( mouse_data.persistent.use_forward_backward ) { 
-
     // If the forward and backward buttons are swapped.
-    if ( mouse_data.persistent.swap_forward_backward ) {
-      leftbutton = leftbutton + 16;
-      rightbutton = rightbutton + 8;
-
-    // Else they are normal.
-    } else {
-      leftbutton = leftbutton + 8;
-      rightbutton = rightbutton + 16;
-    }
+    leftbutton += mouse_data.persistent.swap_forward_backward ? 16 : 8;
+    rightbutton += mouse_data.persistent.swap_forward_backward ? 8 : 16;
   }
 
   // Post data for left click
@@ -696,22 +761,24 @@ void process_mouse_report(hid_mouse_report_t const * report)
 
   // Post data for right click
   set_mouseclick(2, report->buttons & rightbutton );
-     
+  
+
   /* ---------- Mouse Location Tracking ---------- */
-  // Process the X axis
-  if ( mouse_data.persistent.invert_x ){
-    mouse_data.rmpkt.x = mouse_data.rmpkt.x + -( report->x );
-  } else {
-    mouse_data.rmpkt.x = mouse_data.rmpkt.x + report->x;
-  }    
 
-   // Process the Y axis
-  if ( mouse_data.persistent.invert_y ) {
-    mouse_data.rmpkt.y = mouse_data.rmpkt.y + -( report->y );   
-  } else {
-    mouse_data.rmpkt.y = mouse_data.rmpkt.y + report->y;
-  }    
+  // Dump our report values into variables.
+  int8_t mousex = report->x;
+  int8_t mousey = report->y;
 
+  // Is mouse movement inverted
+  if ( mouse_data.persistent.invert_x ) { mousex = -( mousex ); }
+  if ( mouse_data.persistent.invert_y ) { mousey = -( mousey ); }
+
+  // Add and Constrain mouse axis movement | prevent overflow.
+  mouse_data.rmpkt.x = constraini( ( mouse_data.rmpkt.x + mousex ), -16382, 16382);
+  mouse_data.rmpkt.y = constraini( ( mouse_data.rmpkt.y + mousey ), -16382, 16382);
+
+  // Increment mouse movement ticker for AVG movement style.
+  mouse_data.mouse_movt_ticker++;
 
   // Handle our two different mouse types.
   // I need the middle button data for wheel also, so no breaks.
@@ -721,9 +788,9 @@ void process_mouse_report(hid_mouse_report_t const * report)
   case THREEBTN:
     set_mouseclick(1, report->buttons & MOUSE_BUTTON_MIDDLE);
   }
-
   return;
 }
+
 
 // Reset mouse state for the next cycle
 void reset_cycle()
@@ -752,505 +819,103 @@ void reset_cycle()
   mouse_data.rmpkt.x = 0;
   mouse_data.rmpkt.y = 0;
   mouse_data.rmpkt.wheel = 0;
+  mouse_data.mouse_movt_ticker = 0;
+
+  return;
 }
 
 // Update stored mouse packet
 void update_mousepacket()
 {
-    MOUSE_PKT retpkt;
+  MOUSE_PKT retpkt;
 
-    /* ----- Dump in the current mouse data ----- */
-    retpkt.left   = mouse_data.rmpkt.btnFlipFlop[0];  
-    retpkt.middle = mouse_data.rmpkt.btnFlipFlop[1];
-    retpkt.right  = mouse_data.rmpkt.btnFlipFlop[2];
-    retpkt.wheel  = constraini( mouse_data.rmpkt.wheel, -15, 15);
-    retpkt.update = false;
+  /* ----- Dump in the current mouse button data ----- */
+  // ==================================================
+  retpkt.left   = mouse_data.rmpkt.btnFlipFlop[0];  
+  retpkt.middle = mouse_data.rmpkt.btnFlipFlop[1];
+  retpkt.right  = mouse_data.rmpkt.btnFlipFlop[2];
+  retpkt.wheel  = constraini( mouse_data.rmpkt.wheel, -15, 15);
+  retpkt.update = false;
+  
+  /* ----- Handle Specific mouse movement options ----- */
+  // ==================================================
+  switch ( mouse_data.persistent.mouse_movt_type )
+  {
+    case MO_MVT_ADDITIVE: case MO_MVT_COAST:
+    break;
 
-    /* ----- Travel Limit and constrain  ----- */
-    // Limit x travel with x travel limit
-    retpkt.x = travel_limit(mouse_data.rmpkt.x, mouse_data.persistent.xtravel_percentage, 0);
-    // Limit y travel with y travel limit
-    retpkt.y = travel_limit(mouse_data.rmpkt.y, mouse_data.persistent.ytravel_percentage, 0);
-    // Limit x travel with xy travel limit
-    retpkt.x = travel_limit(retpkt.x, mouse_data.persistent.xytravel_percentage, 127); 
-    // Limit y travel with xy travel limit
-    retpkt.y = travel_limit(retpkt.y, mouse_data.persistent.xytravel_percentage, 127); 
+    case MO_MVT_AVERAGE:
+
+      // Avoid a Div by zero err
+      if ( mouse_data.mouse_movt_ticker == 0 ) { break; }
+
+      // Divide the total mouse XY axis values by number of mouse updates
+      mouse_data.rmpkt.x = ( int16_t ) round( mouse_data.rmpkt.x / mouse_data.mouse_movt_ticker );
+      mouse_data.rmpkt.y = ( int16_t ) round( mouse_data.rmpkt.y / mouse_data.mouse_movt_ticker );
+      
+    break;
+  }
+
+  /* ----- Handle Travel Limit Options ----- */
+  // ==================================================
+  retpkt.x = travel_limit(mouse_data.rmpkt.x, mouse_data.persistent.xtravel_percentage, 0); // Limit X
+  retpkt.y = travel_limit(mouse_data.rmpkt.y, mouse_data.persistent.ytravel_percentage, 0); // Limit Y
+  retpkt.x = travel_limit(retpkt.x, mouse_data.persistent.xytravel_percentage, 127); // Limit XY
+  retpkt.y = travel_limit(retpkt.y, mouse_data.persistent.xytravel_percentage, 127); // Limit XY
+  
+  /* ----- Co-Sine Mouse Smoothing ----- */
+  // ==================================================
+  // Low = 1280 | Medium = 1024 | High = 768 | Very High = 512
+  
+  if ( mouse_data.persistent.use_cosine_smoothing > 0){
+
+    double radianVal;
     
-    // If an update is required from a previous cycle, flag update flag
-    retpkt.update = mouse_data.rmpkt.btnUpdated[0] || mouse_data.rmpkt.btnUpdated[1] || mouse_data.rmpkt.btnUpdated[2];
+    // Process X Axis
+    if (retpkt.x !=0 ){
 
-    //retpkt.update = 
-    //retpkt.update = 
-    // If still not true, do a pile of if's
-    // If the current button state is unpressed and previous state was pressed
-    if ( !retpkt.update )
-    {
-      if      ( mouse_data.mpkt.left && !(retpkt.left) )              { retpkt.update = true; }
-      else if ( mouse_data.mpkt.middle && !(retpkt.middle) )          { retpkt.update = true; }
-      else if ( mouse_data.mpkt.right && !(retpkt.right) )            { retpkt.update = true; }
-      else if ( retpkt.x != 0 || retpkt.y != 0 || retpkt.wheel != 0 ) { retpkt.update = true; }
+      radianVal = retpkt.x * (3.14 / ( 1536 - (256 * mouse_data.persistent.use_cosine_smoothing ) ) );
+
+      #if DEBUG > 0
+      printf("Cosine smoothed x: old: %d | new: %d | cos: %f\n", retpkt.x, travel_limit_d(retpkt.x, cos(radianVal), 0), cos(radianVal));
+      #endif
+
+      retpkt.x = travel_limit_d(retpkt.x, cos(radianVal), 0);
     }
 
-    reset_cycle();              // Prepare for the next cycle
-    mouse_data.mpkt = retpkt;   // Overwrite previous mouse packet
+    // Process Y Axis
+    if (retpkt.y !=0 ){
+      radianVal = retpkt.y * (3.14 / ( 1536 - (256 * mouse_data.persistent.use_cosine_smoothing ) ) );
 
-}
+      #if DEBUG > 0
+      printf("Cosine smoothed y: old: %d | new: %d | cos: %f\n", retpkt.y, travel_limit_d(retpkt.y, cos(radianVal), 0), cos(radianVal));
+      #endif
 
+      retpkt.y = travel_limit_d(retpkt.y, cos(radianVal), 0);
+    }
+  }
+  
+  /* ----- Work Out IF There Is A Button Update ----- */
+  // ==================================================
 
-/*---------------------------------------*/
-//               Old Rubbish             //
-/*---------------------------------------*/
+  // If an update is required from a previous cycle, flag update flag
+  retpkt.update = mouse_data.rmpkt.btnUpdated[0] || mouse_data.rmpkt.btnUpdated[1] || mouse_data.rmpkt.btnUpdated[2];
 
-/* ---------------------------------------------------------- */
-/*
-Yes this is messy I know BUT, the pi pico lacks a floating point unit so decent division is slow.
-I decided to make a look up table instead because it could be faster. Math was precalulated using python
-*/
-/* ---------------------------------------------------------- */
-
-int8_t travel_limit75_old(int8_t val)
-{
-  bool neg = false;
-  int8_t newval = 0;
-
-  // If val is negative, flag it as negative and make it positive.
-  if ( val < 0 )  { val *= -1; neg = true; }
-
-  switch (val)
+  // If still not true, do a pile of if's
+  // If the current button state is unpressed and previous state was pressed
+  if ( !retpkt.update )
   {
-    case 0: newval = 0; break;
-    case 1: newval = 1; break;
-    case 2: newval = 2; break;
-    case 3: newval = 2; break;
-    case 4: newval = 3; break;
-    case 5: newval = 4; break;
-    case 6: newval = 4; break;
-    case 7: newval = 5; break;
-    case 8: newval = 6; break;
-    case 9: newval = 7; break;
-    case 10: newval = 8; break;
-    case 11: newval = 8; break;
-    case 12: newval = 9; break;
-    case 13: newval = 10; break;
-    case 14: newval = 11; break;
-    case 15: newval = 11; break;
-    case 16: newval = 12; break;
-    case 17: newval = 13; break;
-    case 18: newval = 14; break;
-    case 19: newval = 14; break;
-    case 20: newval = 15; break;
-    case 21: newval = 16; break;
-    case 22: newval = 16; break;
-    case 23: newval = 17; break;
-    case 24: newval = 18; break;
-    case 25: newval = 19; break;
-    case 26: newval = 20; break;
-    case 27: newval = 20; break;
-    case 28: newval = 21; break;
-    case 29: newval = 22; break;
-    case 30: newval = 22; break;
-    case 31: newval = 23; break;
-    case 32: newval = 24; break;
-    case 33: newval = 25; break;
-    case 34: newval = 26; break;
-    case 35: newval = 26; break;
-    case 36: newval = 27; break;
-    case 37: newval = 28; break;
-    case 38: newval = 28; break;
-    case 39: newval = 29; break;
-    case 40: newval = 30; break;
-    case 41: newval = 31; break;
-    case 42: newval = 32; break;
-    case 43: newval = 32; break;
-    case 44: newval = 33; break;
-    case 45: newval = 34; break;
-    case 46: newval = 34; break;
-    case 47: newval = 35; break;
-    case 48: newval = 36; break;
-    case 49: newval = 37; break;
-    case 50: newval = 38; break;
-    case 51: newval = 38; break;
-    case 52: newval = 39; break;
-    case 53: newval = 40; break;
-    case 54: newval = 40; break;
-    case 55: newval = 41; break;
-    case 56: newval = 42; break;
-    case 57: newval = 43; break;
-    case 58: newval = 44; break;
-    case 59: newval = 44; break;
-    case 60: newval = 45; break;
-    case 61: newval = 46; break;
-    case 62: newval = 46; break;
-    case 63: newval = 47; break;
-    case 64: newval = 48; break;
-    case 65: newval = 49; break;
-    case 66: newval = 50; break;
-    case 67: newval = 50; break;
-    case 68: newval = 51; break;
-    case 69: newval = 52; break;
-    case 70: newval = 52; break;
-    case 71: newval = 53; break;
-    case 72: newval = 54; break;
-    case 73: newval = 55; break;
-    case 74: newval = 56; break;
-    case 75: newval = 56; break;
-    case 76: newval = 57; break;
-    case 77: newval = 58; break;
-    case 78: newval = 58; break;
-    case 79: newval = 59; break;
-    case 80: newval = 60; break;
-    case 81: newval = 61; break;
-    case 82: newval = 61; break;
-    case 83: newval = 62; break;
-    case 84: newval = 63; break;
-    case 85: newval = 64; break;
-    case 86: newval = 64; break;
-    case 87: newval = 65; break;
-    case 88: newval = 66; break;
-    case 89: newval = 67; break;
-    case 90: newval = 68; break;
-    case 91: newval = 68; break;
-    case 92: newval = 69; break;
-    case 93: newval = 70; break;
-    case 94: newval = 70; break;
-    case 95: newval = 71; break;
-    case 96: newval = 72; break;
-    case 97: newval = 73; break;
-    case 98: newval = 74; break;
-    case 99: newval = 74; break;
-    case 100: newval = 75; break;
-    case 101: newval = 76; break;
-    case 102: newval = 76; break;
-    case 103: newval = 77; break;
-    case 104: newval = 78; break;
-    case 105: newval = 79; break;
-    case 106: newval = 80; break;
-    case 107: newval = 80; break;
-    case 108: newval = 81; break;
-    case 109: newval = 82; break;
-    case 110: newval = 82; break;
-    case 111: newval = 83; break;
-    case 112: newval = 84; break;
-    case 113: newval = 85; break;
-    case 114: newval = 85; break;
-    case 115: newval = 86; break;
-    case 116: newval = 87; break;
-    case 117: newval = 88; break;
-    case 118: newval = 88; break;
-    case 119: newval = 89; break;
-    case 120: newval = 90; break;
-    case 121: newval = 91; break;
-    case 122: newval = 92; break;
-    case 123: newval = 92; break;
-    case 124: newval = 93; break;
-    case 125: newval = 94; break;
-    case 126: newval = 94; break;
-    case 127: newval = 95; break; 
-
-    default:
-      newval = 0; break;
+    if      ( mouse_data.mpkt.left && !(retpkt.left) )              { retpkt.update = true; }
+    else if ( mouse_data.mpkt.middle && !(retpkt.middle) )          { retpkt.update = true; }
+    else if ( mouse_data.mpkt.right && !(retpkt.right) )            { retpkt.update = true; }
+    else if ( retpkt.x != 0 || retpkt.y != 0 || retpkt.wheel != 0 ) { retpkt.update = true; }
   }
 
-  // If val was flagged as a negative, make it negative.
-  if ( neg )  { newval *= -1;}
+  /* ----- Wrap it up ----- */
+  // ==================================================
+  reset_cycle();              // Prepare for the next cycle
+  mouse_data.mpkt = retpkt;   // Overwrite previous mouse packet
 
-  return newval;
-}
+  return;
 
-
-int8_t travel_limit50_old(int8_t val)
-{
-  bool neg = false;
-  int8_t newval = 0;
-
-  // If val is negative, flag it as negative and make it positive.
-  if ( val < 0 )  { val *= -1; neg = true; }
-
-  switch (val)
-  {
-    case 0: newval = 0; break;
-    case 1: newval = 0; break;
-    case 2: newval = 1; break;
-    case 3: newval = 2; break;
-    case 4: newval = 2; break;
-    case 5: newval = 2; break;
-    case 6: newval = 3; break;
-    case 7: newval = 4; break;
-    case 8: newval = 4; break;
-    case 9: newval = 4; break;
-    case 10: newval = 5; break;
-    case 11: newval = 6; break;
-    case 12: newval = 6; break;
-    case 13: newval = 6; break;
-    case 14: newval = 7; break;
-    case 15: newval = 8; break;
-    case 16: newval = 8; break;
-    case 17: newval = 8; break;
-    case 18: newval = 9; break;
-    case 19: newval = 10; break;
-    case 20: newval = 10; break;
-    case 21: newval = 10; break;
-    case 22: newval = 11; break;
-    case 23: newval = 12; break;
-    case 24: newval = 12; break;
-    case 25: newval = 12; break;
-    case 26: newval = 13; break;
-    case 27: newval = 14; break;
-    case 28: newval = 14; break;
-    case 29: newval = 14; break;
-    case 30: newval = 15; break;
-    case 31: newval = 16; break;
-    case 32: newval = 16; break;
-    case 33: newval = 16; break;
-    case 34: newval = 17; break;
-    case 35: newval = 18; break;
-    case 36: newval = 18; break;
-    case 37: newval = 18; break;
-    case 38: newval = 19; break;
-    case 39: newval = 20; break;
-    case 40: newval = 20; break;
-    case 41: newval = 20; break;
-    case 42: newval = 21; break;
-    case 43: newval = 22; break;
-    case 44: newval = 22; break;
-    case 45: newval = 22; break;
-    case 46: newval = 23; break;
-    case 47: newval = 24; break;
-    case 48: newval = 24; break;
-    case 49: newval = 24; break;
-    case 50: newval = 25; break;
-    case 51: newval = 26; break;
-    case 52: newval = 26; break;
-    case 53: newval = 26; break;
-    case 54: newval = 27; break;
-    case 55: newval = 28; break;
-    case 56: newval = 28; break;
-    case 57: newval = 28; break;
-    case 58: newval = 29; break;
-    case 59: newval = 30; break;
-    case 60: newval = 30; break;
-    case 61: newval = 30; break;
-    case 62: newval = 31; break;
-    case 63: newval = 32; break;
-    case 64: newval = 32; break;
-    case 65: newval = 32; break;
-    case 66: newval = 33; break;
-    case 67: newval = 34; break;
-    case 68: newval = 34; break;
-    case 69: newval = 34; break;
-    case 70: newval = 35; break;
-    case 71: newval = 36; break;
-    case 72: newval = 36; break;
-    case 73: newval = 36; break;
-    case 74: newval = 37; break;
-    case 75: newval = 38; break;
-    case 76: newval = 38; break;
-    case 77: newval = 38; break;
-    case 78: newval = 39; break;
-    case 79: newval = 40; break;
-    case 80: newval = 40; break;
-    case 81: newval = 40; break;
-    case 82: newval = 41; break;
-    case 83: newval = 42; break;
-    case 84: newval = 42; break;
-    case 85: newval = 42; break;
-    case 86: newval = 43; break;
-    case 87: newval = 44; break;
-    case 88: newval = 44; break;
-    case 89: newval = 44; break;
-    case 90: newval = 45; break;
-    case 91: newval = 46; break;
-    case 92: newval = 46; break;
-    case 93: newval = 46; break;
-    case 94: newval = 47; break;
-    case 95: newval = 48; break;
-    case 96: newval = 48; break;
-    case 97: newval = 48; break;
-    case 98: newval = 49; break;
-    case 99: newval = 50; break;
-    case 100: newval = 50; break;
-    case 101: newval = 50; break;
-    case 102: newval = 51; break;
-    case 103: newval = 52; break;
-    case 104: newval = 52; break;
-    case 105: newval = 52; break;
-    case 106: newval = 53; break;
-    case 107: newval = 54; break;
-    case 108: newval = 54; break;
-    case 109: newval = 55; break;
-    case 110: newval = 55; break;
-    case 111: newval = 56; break;
-    case 112: newval = 56; break;
-    case 113: newval = 56; break;
-    case 114: newval = 57; break;
-    case 115: newval = 57; break;
-    case 116: newval = 58; break;
-    case 117: newval = 58; break;
-    case 118: newval = 59; break;
-    case 119: newval = 60; break;
-    case 120: newval = 60; break;
-    case 121: newval = 60; break;
-    case 122: newval = 61; break;
-    case 123: newval = 62; break;
-    case 124: newval = 62; break;
-    case 125: newval = 62; break;
-    case 126: newval = 63; break;
-    case 127: newval = 64; break;
-    default:
-      newval = 0; break;
-  }
-
-  // If val was flagged as a negative, make it negative.
-  if ( neg )  { newval *= -1; }
-
-  return newval;
-}
-
-
-int8_t travel_limit25_old(int8_t val)
-{
-  bool neg = false;
-  int8_t newval = 0;
-
-  // If val is negative, flag it as negative and make it positive.
-  if ( val < 0 )  { val *= -1; neg = true; }
-
-  switch (val)
-  {
-    case 0: newval = 0; break;
-    case 1: newval = 0; break;
-    case 2: newval = 1; break;
-    case 3: newval = 1; break;
-    case 4: newval = 1; break;
-    case 5: newval = 1; break;
-    case 6: newval = 2; break;
-    case 7: newval = 2; break;
-    case 8: newval = 2; break;
-    case 9: newval = 2; break;
-    case 10: newval = 2; break;
-    case 11: newval = 3; break;
-    case 12: newval = 3; break;
-    case 13: newval = 3; break;
-    case 14: newval = 4; break;
-    case 15: newval = 4; break;
-    case 16: newval = 4; break;
-    case 17: newval = 4; break;
-    case 18: newval = 4; break;
-    case 19: newval = 5; break;
-    case 20: newval = 5; break;
-    case 21: newval = 5; break;
-    case 22: newval = 6; break;
-    case 23: newval = 6; break;
-    case 24: newval = 6; break;
-    case 25: newval = 6; break;
-    case 26: newval = 6; break;
-    case 27: newval = 7; break;
-    case 28: newval = 7; break;
-    case 29: newval = 7; break;
-    case 30: newval = 8; break;
-    case 31: newval = 8; break;
-    case 32: newval = 8; break;
-    case 33: newval = 8; break;
-    case 34: newval = 8; break;
-    case 35: newval = 9; break;
-    case 36: newval = 9; break;
-    case 37: newval = 9; break;
-    case 38: newval = 10; break;
-    case 39: newval = 10; break;
-    case 40: newval = 10; break;
-    case 41: newval = 10; break;
-    case 42: newval = 10; break;
-    case 43: newval = 11; break;
-    case 44: newval = 11; break;
-    case 45: newval = 11; break;
-    case 46: newval = 12; break;
-    case 47: newval = 12; break;
-    case 48: newval = 12; break;
-    case 49: newval = 12; break;
-    case 50: newval = 12; break;
-    case 51: newval = 13; break;
-    case 52: newval = 13; break;
-    case 53: newval = 13; break;
-    case 54: newval = 14; break;
-    case 55: newval = 14; break;
-    case 56: newval = 14; break;
-    case 57: newval = 14; break;
-    case 58: newval = 14; break;
-    case 59: newval = 15; break;
-    case 60: newval = 15; break;
-    case 61: newval = 15; break;
-    case 62: newval = 16; break;
-    case 63: newval = 16; break;
-    case 64: newval = 16; break;
-    case 65: newval = 16; break;
-    case 66: newval = 16; break;
-    case 67: newval = 17; break;
-    case 68: newval = 17; break;
-    case 69: newval = 17; break;
-    case 70: newval = 18; break;
-    case 71: newval = 18; break;
-    case 72: newval = 18; break;
-    case 73: newval = 18; break;
-    case 74: newval = 18; break;
-    case 75: newval = 19; break;
-    case 76: newval = 19; break;
-    case 77: newval = 19; break;
-    case 78: newval = 20; break;
-    case 79: newval = 20; break;
-    case 80: newval = 20; break;
-    case 81: newval = 20; break;
-    case 82: newval = 20; break;
-    case 83: newval = 21; break;
-    case 84: newval = 21; break;
-    case 85: newval = 21; break;
-    case 86: newval = 22; break;
-    case 87: newval = 22; break;
-    case 88: newval = 22; break;
-    case 89: newval = 22; break;
-    case 90: newval = 22; break;
-    case 91: newval = 23; break;
-    case 92: newval = 23; break;
-    case 93: newval = 23; break;
-    case 94: newval = 24; break;
-    case 95: newval = 24; break;
-    case 96: newval = 24; break;
-    case 97: newval = 24; break;
-    case 98: newval = 24; break;
-    case 99: newval = 25; break;
-    case 100: newval = 25; break;
-    case 101: newval = 25; break;
-    case 102: newval = 26; break;
-    case 103: newval = 26; break;
-    case 104: newval = 26; break;
-    case 105: newval = 26; break;
-    case 106: newval = 26; break;
-    case 107: newval = 27; break;
-    case 108: newval = 27; break;
-    case 109: newval = 27; break;
-    case 110: newval = 28; break;
-    case 111: newval = 28; break;
-    case 112: newval = 28; break;
-    case 113: newval = 28; break;
-    case 114: newval = 28; break;
-    case 115: newval = 29; break;
-    case 116: newval = 29; break;
-    case 117: newval = 29; break;
-    case 118: newval = 30; break;
-    case 119: newval = 30; break;
-    case 120: newval = 30; break;
-    case 121: newval = 30; break;
-    case 122: newval = 30; break;
-    case 123: newval = 31; break;
-    case 124: newval = 31; break;
-    case 125: newval = 31; break;
-    case 126: newval = 32; break;
-    case 127: newval = 32; break;
-    default:
-      newval = 0; break;
-  }
-
-  // If val was flagged as a negative, make it negative.
-  if ( neg )  { newval *= -1; }
-
-  return newval;
 }

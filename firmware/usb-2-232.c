@@ -20,10 +20,17 @@
 
 MOUSE_DATA mouse_data;
 
+// Aggregate movements before sending
+CFG_TUSB_MEM_SECTION static hid_mouse_report_t usb_mouse_report_prev;
+
+static absolute_time_t usb_polling_target;
+static absolute_time_t serial_mouse_target;
+
 /*---------------------------------------*/
 //                  Main                 //
 /*---------------------------------------*/
 int main(){
+
     stdio_init_all();           // pico SDK
     board_init();               // init board from TinyUSB
     tusb_init();                // init TinyUSB
@@ -103,26 +110,30 @@ int main(){
     mouse_data.intro_pkts[0] = 0x4D;    // M
     mouse_data.intro_pkts[1] = 0x33;    // 3
     mouse_data.intro_pkts[2] = 0x5A;    // Z
-    mouse_data.mouse_conn = false;
+    mouse_data.mouse_count = 0;
 
     mouse_data.serial_state = 0;
     
     /*----------   TIMERS   ----------*/
-    startTerminalTimer();             // Start Our Terminal Timer
-    startMouseTimer();                // Start Our Mouse Timer
+    startTerminalTimer();               // Start Our Terminal Timer
+    usb_polling_target = get_absolute_time();
+    serial_mouse_target = get_absolute_time();
 
     /*---------------------------------------*/
     //               Main Loop               //
     /*---------------------------------------*/
     while(1)
-    {   
+    {  
+
+        /*----------   Blink Built in LED to show the main loop is running   ----------*/
+        // Blink the built in LED when in DEBUG Mode
+        if ( DEBUG ) { blink_led_task(); } 
+        
+
         /*----------   Serial Terminal   ----------*/
         // Serial State is used to say if the pico should be a serial terminal or a mouse. 
-        if ( mouse_data.serial_state != 0 )
-        {   
-            // Stop Mouse Timer
-            stopMouseTimer();               
-            
+        if ( mouse_data.serial_state == 1  || mouse_data.serial_state == 2 )
+        { 
             // If the UART we got data from is the one we're using for the mouse
             if ( ( mouse_data.serial_state == 1 && UART_ID == uart0 ) || ( mouse_data.serial_state == 2 && UART_ID == uart1 ) ) {
 
@@ -136,14 +147,60 @@ int main(){
             }
 
             mouse_data.serial_state = 0;    // Set serial State to mouse mode
-            startMouseTimer();              // Resume Mouse Timer
             startTerminalTimer();           // Resume Terminal Timer
         }
 
-        /*----------   Blink Built in LED to show the main loop is running   ----------*/
-        // Blink the built in LED when in DEBUG Mode
-        if ( DEBUG ) { blink_led_task(); } 
 
+        // USB Mouse Polling
+        // -----------------------------
+
+        switch ( mouse_data.persistent.mouse_movt_type )
+        {
+            case MO_MVT_ADDITIVE: case MO_MVT_AVERAGE: 
+
+                // TinyUSB usb host task
+                tuh_task();
+
+            break;
+
+            case MO_MVT_COAST:
+                if ( time_reached(usb_polling_target) ) {
+
+                    // TinyUSB usb host task
+                    tuh_task();
+
+                    if ( mouse_data.mouse_count < 1 ) {
+                        usb_polling_target = delayed_by_ms( get_absolute_time(), 8 );
+                    } else if ( mouse_data.persistent.mousetype == TWOBTN ) {
+                        usb_polling_target = delayed_by_us( get_absolute_time(), mouse_data.serialdelay_3B);
+                    } else {
+                        usb_polling_target = delayed_by_us( get_absolute_time(), mouse_data.serialdelay_4B);
+                    }
+
+                }
+            break;
+        }
+
+        // Serial Mouse functionality timer
+        // -----------------------------
+        //
+        // This timer posts the mouse data off to the serial port.
+        if ( time_reached(serial_mouse_target) )
+        {
+            #if DEBUG > 0 
+                postSerialMouse(); 
+            #else
+                if ( (mouse_data.pc_state == CTS_TOGGLED && mouse_data.mouse_count > 0) ) { postSerialMouse(); }
+                else { reset_cycle(); }
+            #endif
+            
+            // Set a time for the next serial mouse trigger
+            if ( mouse_data.persistent.mousetype == TWOBTN ) {
+                serial_mouse_target = delayed_by_us( get_absolute_time(), mouse_data.serialdelay_3B);
+            } else {
+                serial_mouse_target = delayed_by_us( get_absolute_time(), mouse_data.serialdelay_4B);
+            }
+        }
 
         /*----------   Main Mouse Part of the mouse  ----------*/
         bool cts_pin = gpio_get(UART_CTS_PIN);
@@ -184,15 +241,10 @@ int main(){
             mouse_data.pc_state = CTS_LOW_INIT;
         }
 
-        /*** Mouse update loop ***/
-        if( mouse_data.pc_state == CTS_TOGGLED || DEBUG ) {
-            tuh_task(); // tinyusb host task
-        }
-
         // we fall in here for the thing (yank out serial cable )
-        if( (mouse_data.pc_state != CTS_TOGGLED && mouse_data.mouse_conn) )
+        if( (mouse_data.pc_state != CTS_TOGGLED && mouse_data.mouse_count > 0) )
         {   
-            mouse_data.mouse_conn = false;
+            //mouse_data.mouse_conn = false;
 
             //if ( DEBUG ) { printf("Serial Connection not found"); }
 

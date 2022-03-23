@@ -8,13 +8,15 @@
 //                Utilites               //
 /*---------------------------------------*/
 
-int constraini(int16_t value, int8_t min, int8_t max);
+int constraini(int16_t value, int16_t min, int16_t max);
 
 void init_pinheader(uint pin);
 
 void init_led(uint pin);
 
 void machine_reboot();
+
+void blink_aled(uint gpio, uint8_t code);
 
 /*---------------------------------------*/
 //            Repeating Timers           //
@@ -24,15 +26,11 @@ void startTerminalTimer();
 
 void stopTerminalTimer();
 
-void startMouseTimer();
-
-void stopMouseTimer();
-
-void calcSerialDelay();
-
 /*---------------------------------------*/
 //          Mouse Settings Stuff         //
 /*---------------------------------------*/
+
+void calcSerialDelay();
 
 void setDipSerialBaud();
 
@@ -70,7 +68,9 @@ void blink_led_task(void);
 //             Travel Limits             //
 /*---------------------------------------*/
 
-int8_t travel_limit(int16_t val, int8_t percentage, uint8_t constainval);
+int16_t travel_limit(int16_t val, uint8_t percentage, uint16_t constainval);
+
+int16_t travel_limit_d(int16_t val, double percentage, uint16_t constainval);
 
 /*---------------------------------------*/
 //            Mouse Processing           //
