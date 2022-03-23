@@ -99,12 +99,12 @@ Both the phat and slim variants of the PCB support being configured via serial t
             | Invert Y (Up and Down) mouse movement.
     + Movement Type
             | Set Movement Type. USB mice talk faster than serial mice, movement type decides what to do with the backlog between serial mouse updates.
-                + Additive: 
-                    | Sum the mouse movement (Sensitive)
-                + Average
-                    | Avg the mouse movement  (Insensitive)
-                + Coast 
-                    | Send the mouse movement incrementally (Slippy)
+        + Additive: 
+                | Sum the mouse movement (Sensitive)
+        + Average
+                | Avg the mouse movement  (Insensitive)
+        + Coast 
+                | Send the mouse movement incrementally (Slippy)
     + Cosine Smoothing
             |Makes the cursor proportionally less sensitive at high speeds, leaving the movement mostly one to one at low speeds
 
