@@ -97,6 +97,14 @@ Both the phat and slim variants of the PCB support being configured via serial t
             | Invert X (Left and Right) mouse movement.
     + Invert Y
             | Invert Y (Up and Down) mouse movement.
+    + Movement Type
+            | Set Movement Type. USB mice talk faster than serial mice, movement type decides what to do with the backlog between serial mouse updates.
+            Additive: Sum the mouse movement (Sentivive)
+            Average: Avg the mouse movement  (Insensitive)
+            Coast: Send the mouse movement incrementally (Slippy)
+    + Cosine Smoothing
+            |Makes the cursor proportionally less sensitive at high speeds, leaving the movement mostly one to one at low speeds
+            
 + Mouse Buttons
     + List Config
         | List the current mouse button settings
@@ -177,5 +185,5 @@ The default mouse settings can be edited in `default_config.h` prior to compilat
 
 The build environment is a normal PicoSDK setup, there are several guides out the for both Linux and Windows.  From experience the setup is easier in Linux. However there is one important thing you need to know:
 
-**PicoSDK version 1.2.0**
-The version of TinyUSB included with the newest version of the PicoSDK doesn't work great. You could probably use TinyUSB v10.1 on the newest PicoSDK but that's a bit messy.
+**PicoSDK version 1.3.0**
+The version of TinyUSB used in this project was customized. The customized version of TinyUSB can be found in the firmware folder. If you want to compile the firmware yourself you will need to replace the stock TinyUSB with the customized version found here
