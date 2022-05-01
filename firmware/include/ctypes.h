@@ -50,6 +50,16 @@ enum MO_MVT_COS {
   MO_MVT_COS_VERYHIGH = 4
 };
 
+// Mouse Type enum
+enum CORE_FLAGS {
+  cf_nothing = 0,
+  cf_stop = 1, 
+  cf_resume = 2,
+  cf_update = 3,
+  cf_post = 4,
+  cf_nopost = 5
+};
+
 
 /* -------------------- Mouse Packet Structure -------------------- */
 /*  This is the hold the mouse state for the previous cycle. 
@@ -84,9 +94,6 @@ typedef struct {
   // Mouse location delta       | X + Y + Wheel
   int16_t  x, y, wheel;
 
-  // Is update required this cycle?
-  //bool update;
-
 } MOUSE_RPKT;
 
 /* -------------------- Persistent Data Structure -------------------- */
@@ -111,8 +118,8 @@ typedef struct  {
     bool doublestopbit;
 
     // Baud rate 
-    // 1200 | 2400 | 4800 | 9600
-    uint16_t baudrate;
+    // 1200 | 2400 | 4800 | 9600 | 19200
+    uint baudrate;
 
     // Swap the left and right buttons 
     bool swap_left_right;
@@ -144,7 +151,9 @@ typedef struct  {
     bool ST_DIPSW_75XYSPEED;        // DIP 3
     bool ST_DIPSW_50XYSPEED;        // DIP 4
     bool ST_DIPSW_7N2;              // DIP 5
-    bool ST_DIPSW_2400;             // DIP 6
+    bool ST_DIPSW_19200;            // DIP 6
+
+    uint8_t language;
 
 } PERSISTENT_MOUSE_DATA; 
 
@@ -169,19 +178,7 @@ typedef struct {
   MOUSE_RPKT rmpkt;    
 
   // Persisten Mouse data, survives reboots.
-  PERSISTENT_MOUSE_DATA persistent;
-
-  // One Byte Delay Time, calculated on startup.
-  int32_t serialdelay_1B;        
-
-  // Three Byte Delay Time, calculated on startup.         
-  int32_t serialdelay_3B;
-
-  // Four Byte Delay Time, calculated on startup.
-  int32_t serialdelay_4B;
-
-  // M3Z | Ident info serial mouse.
-  uint8_t intro_pkts[3];                  
+  PERSISTENT_MOUSE_DATA persistent;               
 
   // Is mouse connected flag
   uint8_t mouse_count;
@@ -189,6 +186,20 @@ typedef struct {
   // counr the number of mouse updates between serial cycles. USed for AVG mouse movement
   uint8_t mouse_movt_ticker;
 
+  // The real Baudrate returned by pico
+  uint realbaudrate;
+
+  // One Bit Delay Time, calculated on startup.
+  float serialdelay_1b;    
+
+  // One Byte Delay Time, calculated on startup.
+  uint serialdelay_1B;        
+
+  // Three Byte Delay Time, calculated on startup.         
+  uint serialdelay_3B;
+
+  // Four Byte Delay Time, calculated on startup.
+  uint serialdelay_4B;
 
 
 } MOUSE_DATA;
@@ -205,7 +216,8 @@ enum MO_SPEED MO_SPEED;
 enum MO_TYPE MO_TYPE;
 enum PC_INIT_STATES PC_INIT_STATES;
 enum MO_MVT_TYPE MO_MVT_TYPE;
-enume MO_MVT_COS MO_MVT_COS;
+enum MO_MVT_COS MO_MVT_COS;
+enum CORE_FLAGS CORE_FLAGS;
 //PersistentData persistentData;
 
 #else
@@ -215,6 +227,7 @@ extern enum MO_TYPE MO_TYPE;
 extern enum PC_INIT_STATES PC_INIT_STATES;
 extern enum MO_MVT_TYPE MO_MVT_TYPE;
 extern enum MO_MVT_COS MO_MVT_COS;
+extern enum CORE_FLAGS CORE_FLAGS;
 //extern PersistentData persistentData;
 
 #endif

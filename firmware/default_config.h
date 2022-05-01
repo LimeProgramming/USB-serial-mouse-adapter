@@ -4,7 +4,7 @@
 //                 DEBUG                 //
 /*---------------------------------------*/
 
-// All this really does is give printf's out via UART1
+// All this really does is give printf's out via UART0
 #define DEBUG false          // Debug Flag for things
 
 
@@ -18,7 +18,7 @@
 #define DIPSW_75XYSPEED 11      // Dip Switch 3 | 75% speed | Dip 3 + 4 depressed will set mouse speed to 25%
 #define DIPSW_50XYSPEED 12      // Dip Switch 4 | 50% speed | Dip 3 + 4 depressed will set mouse speed to 25%
 #define DIPSW_7N2 13            // Dip Switch 5 | 7N2 format
-#define DIPSW_2400 14           // Dip Switch 6 | Reserved
+#define DIPSW_19200 14          // Dip Switch 6 | High Buad Rate
 
 // LEDS 
 #define LED_PWR 2
@@ -56,7 +56,7 @@ static bool default_doublestopbit = false;
 
 // Baud Rate
 /* ---------- Acceptible baud rates ----------
-            1200 | 2400 | 4800 | 9600
+        1200 | 2400 | 4800 | 9600 | 19200
             Recommended value is 1200 
 
 Any values outside of the ones above, are rejected
@@ -64,10 +64,7 @@ and the default value of 1200 is used.
 
 Note:
 As far as I can see from docs, serial mice ran at
-1200 Baud, so any value higher then that may result in issues.
-Max value is 9600 because of hardware limits of the 
-max232 
-
+1200 Baud, so you will need modified drivers for higher baud rates
    ------------------------------------------ */
 
 static uint16_t default_baudrate = 1200;
@@ -108,9 +105,9 @@ static bool default_invert_y = false;
 /==-- COAST:
 /==--       Unlike Additive and Average; Coast does not throw away extra movement when the mouse is moved quickly, instead it incrementally sends out the movement. 
 /==--       Results in a cursor feeling like it's skidding along on ice at high speeds. I don't know where it would be useful but it's fun to mess with!
-/==-- 0- > Additive axis movement | 1 -> Average axis movement | 2-> Coast
+/==-- 0 -> Additive axis movement | 1 -> Average axis movement | 2-> Coast
 */
-static uint8_t mouse_movt_type = 0;
+static uint8_t default_mouse_movt_type = 0;
 
 /*
 /==-- COSINE SMOOTHING 
@@ -119,7 +116,16 @@ static uint8_t mouse_movt_type = 0;
 /==-- It could be useful for point and click DOS games but is not recommended for games where mouse movement controls a camera.
 /==-- 0 -> Disabled | 1 -> Low | 2 -> Medium | 3 -> High | 4 - > Very High
 */
-static uint8_t use_cosine_smoothing = 0;
+static uint8_t default_use_cosine_smoothing = 0;
+
+
+// Added version 1.2.X
+/*
+/==-- LANGUAGE
+/==-- 0 -> English | 1 -> German 
+*/
+static uint8_t default_language = 1;
+
 
 /*---------------------------------------*/
 //            Advanced Settings          //
@@ -128,14 +134,15 @@ static uint8_t use_cosine_smoothing = 0;
 
 /* ---------------------------------------------------------- */
 /*  Numbers for Serial Speed and Delay times
-    - Thanks to Aviancer for the numbers | https://github.com/Aviancer/amouse
 
-    1200 baud (bits/s) is 133.333333333... bytes/s
-    44.44.. updates per second with 3 bytes.
-    33.25.. updates per second with 4 bytes.
-    ~0.0075 seconds per byte, target time calculated for 4 bytes.
 
-    SERIALDELAY = (((7500 / (BAUD_RATE / 1200)) * NumberOfBytes) + TXWIGGLEROOM )
+    // Works for bits per microsecond
+    1 bit =  ( 1000000 / (real_baudrate) );
+
+    // Work out the time for 1, 3, 4 mouse packet(s)
+    1 Packet = (1 bit * (doublestopbit ? 9 : 8) ) + TXWIGGLEROOM;
+    3 Packets = 1 Packet * 3;
+    4 Packets = 1 Packet * 4;
 
     SerialDelay is the time between when serial packets are sent, based on the math above */
 /* ---------------------------------------------------------- */

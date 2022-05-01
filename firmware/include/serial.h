@@ -3,11 +3,14 @@
 
 #include "pico.h"
 
+
 /*---------------------------------------*/
 //          Generic Serial Stuff         //
 /*---------------------------------------*/
 
-void init_serial_uart();
+void init_serial_uart(uint data_bits);
+
+void set_serial_data(uint data_bits);
 
 void refresh_serial_uart();
 
@@ -15,7 +18,11 @@ void refresh_serial_uart();
 //           Serial Mouse Funcs          //
 /*---------------------------------------*/
 
+void serial_putc(uint8_t *buffer, int size);
+
 void serialMouseNego();
+
+void printfMousePacket();
 
 void postSerialMouse();
 

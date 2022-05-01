@@ -194,3 +194,4 @@ The build environment is a normal PicoSDK setup, there are several guides out th
 
 **PicoSDK version 1.3.0**
 The version of TinyUSB used in this project was customized. The customized version of TinyUSB can be found in the firmware folder. If you want to compile the firmware yourself you will need to replace the stock TinyUSB with the customized version found here
+

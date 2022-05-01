@@ -14,8 +14,6 @@
 //             TinyUSB Stuff             //
 /*---------------------------------------*/
 
-/*----- Memory -----*/
-
 CFG_TUSB_MEM_SECTION static char serial_in_buffer[64] = { 0 };
 
 static uint8_t const keycode2ascii[128][2] =  { HID_KEYCODE_TO_ASCII };
@@ -31,34 +29,25 @@ void tuh_hid_mount_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* desc_re
 {
     switch ( tuh_hid_interface_protocol(dev_addr, instance) ) 
     {
-        // If we have a mouse!
         case HID_ITF_PROTOCOL_MOUSE:
 
-            // Turn on Alert LED
-            // TODO: Flag mouse connected ALRT
-            gpio_put(LED_ALERT, 1);   
+            gpio_put(LED_ALERT, 1);     // Turn on Alert LED
 
-            // Increment our mouse counter
-            ++mouse_data.mouse_count;
+            ++mouse_data.mouse_count;   // Increment our mouse counter
             
-            break;
+        break;
 
-        // If we have a keyboard!
-        case HID_ITF_PROTOCOL_KEYBOARD:
-            break;
-
+        case HID_ITF_PROTOCOL_KEYBOARD: break;
 
         // Process HID Report and hope it's a mouse
         case HID_ITF_PROTOCOL_NONE:    
             // By default host stack will use activate boot protocol on supported interface.
             hid_info[instance].report_count = tuh_hid_parse_report_descriptor(hid_info[instance].report_info, MAX_HID_REPORT, desc_report, desc_len);
-            // TODO: Flag mouse unsure ALRT
-            break;
+
+        break;
         
         // Process Generic Report
-        default:                        
-            // TODO: Flag incompatible ALRT
-            break;
+        default:    break;
     }
     
     // Manually tell TinyUSB that we do actually want data from the connected USB device
@@ -74,9 +63,7 @@ void tuh_hid_mount_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* desc_re
     printf("HID device with address %d, instance %d, protocol %d, is a %s, has mounted.\r\n", dev_addr, instance, itf_protocol, protocol_str[itf_protocol]); 
 
     // ---------- Print out for bad USB device.
-    if ( !claim_endpoint ) {
-        printf("Error: cannot request to receive report\r\n");
-    }
+    if ( !claim_endpoint ) { printf("Error: cannot request to receive report\r\n"); }
 
     #endif
 
@@ -91,29 +78,20 @@ void tuh_hid_umount_cb(uint8_t dev_addr, uint8_t instance)
     {
         case HID_ITF_PROTOCOL_MOUSE:
 
-            // Deincrement the mouse counter
-            --mouse_data.mouse_count;
+            --mouse_data.mouse_count;       // Deincrement the mouse counter
 
             if ( mouse_data.mouse_count <= 0 )
             {   
-                // Make sure mouse count is actually zero
-                mouse_data.mouse_count = 0;
-
-                // Turn off mouse connected LED
-                gpio_put(LED_ALERT, 0);
+                mouse_data.mouse_count = 0; // Make sure mouse count is actually zero
+                gpio_put(LED_ALERT, 0);     // Turn off mouse connected LED
             }
 
         break;
     }
 
     #if DEBUG
-
     printf("HID device with address %d, instance %d was unmounted.\r\n", dev_addr, instance);
-
     #endif
-    
-    // Old bug fix for TinyUSB, it liked to crash when something was disconnected.
-    //machine_reboot();               // There's a bug in TinyUSB, a reboot should bypass it
 }
 
 // ==================================================

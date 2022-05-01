@@ -26,6 +26,10 @@ void startTerminalTimer();
 
 void stopTerminalTimer();
 
+void startPWRBlinkerTimer();
+
+void stopPWRBlinkerTimer();
+
 /*---------------------------------------*/
 //          Mouse Settings Stuff         //
 /*---------------------------------------*/

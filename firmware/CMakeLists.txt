@@ -33,6 +33,7 @@ add_executable(usb-2-232
   include/hid_app.c
   include/serial.c
   include/utils.c
+  include/core_1.c
 )
 
 # Make sure TinyUSB can find tusb_config.h
@@ -40,7 +41,7 @@ target_include_directories(usb-2-232 PUBLIC ${CMAKE_CURRENT_LIST_DIR})
 
 # In addition to pico_stdlib required for common PicoSDK functionality, add dependency on tinyusb_host
 # for TinyUSB device support and tinyusb_board for the additional board support library used by the example
-target_link_libraries(usb-2-232 pico_stdlib hardware_flash hardware_sync tinyusb_host tinyusb_board)
+target_link_libraries(usb-2-232 pico_stdlib hardware_flash hardware_sync tinyusb_host tinyusb_board pico_multicore)
 
 include_directories(include/)
 link_directories(include/)
