@@ -80,7 +80,7 @@ The phat variant of the PCB includes headers in either of the form of dip switch
 | 3 | 75% Mouse Travel Modifier / Dip 3 + 4 for 25% |
 | 4 | 50% Mouse Travel Modifier / Dip 3 + 4 for 25% |
 | 5 | 7N2|
-| 6 | 2400 Baud Rate|
+| 6 | 19200 Baud Rate|
 
 ### Serial Terminal
 ![serial terminal gif](https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/images/serial_term.gif)
@@ -127,13 +127,14 @@ Both the phat and slim variants of the PCB support being configured via serial t
     + Format
         | One stop bit (7N1) or two stop bits (7N2) 
     + Baud Rate
-        | 1200 2400 4800 9600 Baud Rates. Note you will need compatible mouse drivers.
+        | 1200 2400 4800 9600 19200 Baud Rates. Note you will need compatible mouse drivers.
      + Mouse Type
      | Microsoft 2 Button, Logitech Three Button or Microsoft Wheel mouse. Note: You may need to reconfigure your mouse driver upon change.
 + Firmware
     + Information | Information about the firmware
+    + Language | Set the language of the settings terminal
     + Reset | Reset mouse settings back to default
-    + List Default Settings | List the default settings of the adapter. 
+    + List Default Settings | List the default settings of the adapter
 + Exit
     + Return to mouse mode
 
