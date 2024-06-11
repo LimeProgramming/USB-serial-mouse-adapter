@@ -28,7 +28,8 @@ Support for use on KVMs has been added as of version 1.1.1.
 It works fine on my **one**, startech branded, KVM that I have test with. Given that TinyUSB is a bit picky, your results may vary.
 
 ## PCBs
-There are two variants of the PCB available in the KiCad folder, Phat and Slim for your preference. The main circuit for both PCBs is the same so the firmware package will work on both PCBs.
+There are two variants of the PCB available in the KiCad folder, Phat and Slim for your preference. The main circuit for both PCBs is the same so the firmware package will work on both PCBs. A full BOM for LCSC (except for header pins) is available in the Phat folder: [LCSC BOM](https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/KiCad/Phat/BOM_LCSC.xls). For the Slim build you can omit the dip switches and reset switch (you will have to source an appropriate SMD reset switch).
+
 
 ### Phat:
 [<img align="center" alt="PHAT_PCB" width="650px" src="https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/images/phat_readme_s.webp"/>](https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/images/phat_readme.png)
