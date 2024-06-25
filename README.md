@@ -30,11 +30,15 @@ It works fine on my **one**, startech branded, KVM that I have test with. Given 
 ## PCBs
 There are two variants of the PCB available in the KiCad folder, Phat and Slim for your preference. The main circuit for both PCBs is the same so the firmware package will work on both PCBs. A full BOM for LCSC (except for header pins) is available in the Phat folder: [LCSC BOM](https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/KiCad/Phat/BOM_LCSC.xls). For the Slim build you can omit the dip switches and reset switch (you will have to source an appropriate SMD reset switch).
 
-#### Building a PCB:
+### Building a PCB:
 
+#### MAX232/3232 voltage selection:
 The PCB has a jumper to select between 3.3v and 5v for the MAX chip. 
 - If you're using a MAX232 then bridge 5v to the center pin and install all the resistors. The part listed in the [BOM](https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/KiCad/Phat/BOM_LCSC.xls) is a MAX232 chip.
 - If you're using a MAX3232 then bridge 3.3v to the center pin, bridge R4 and R3, and remove R1 and R2.
+
+#### Board to Pico USB data connection:
+The TP2 and TP3 testpoints on the board must be soldered to the corresponding TP2 and TP3 test points on the Pico, underneath the USB connector.
 
 
 ### Phat:
