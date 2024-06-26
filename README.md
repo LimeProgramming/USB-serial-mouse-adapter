@@ -38,7 +38,9 @@ The PCB has a jumper to select between 3.3v and 5v for the MAX chip.
 - If you're using a MAX3232 then bridge 3.3v to the center pin, bridge R4 and R3, and remove R1 and R2.
 
 #### Board to Pico USB data connection:
-The TP2 and TP3 testpoints on the board must be soldered to the corresponding TP2 and TP3 test points on the Pico, underneath the USB connector.
+The `TP2` and `TP3` testpoints on the board must be soldered to the corresponding `TP2` and `TP3` test points on the Pico, underneath the USB connector:
+
+[<img align="center" alt="Pico bottom TP2 and TP3 test points" src="images/Pico_bottom.webp"/>](images/Pico_bottom.png)
 
 
 ### Phat:
@@ -63,7 +65,9 @@ Made for people be require the adapter to be as small as possible. Not much wide
 ## Powering the device
 ### MicroUSB:
 [<img align="left" alt="POWERING_MICROUSB" width="500px" src="https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/images/power_microusb_s.webp"/>](https://raw.githubusercontent.com/LimeProgramming/USB-serial-mouse-adapter/main/images/power_microusb.png)
-The easiest way to power the device would be to use the Picos micro USB port. Be sure to use a USB power only cable or a wall power adapter otherwise it won't pick up the mouse.
+The easiest way to power the device would be to use the Pico's micro USB port. Be sure to use a USB power only cable or a wall power adapter otherwise it won't pick up the mouse.
+
+**PLEASE NOTE:** Some "power only" USB cables have the data lines shorted together. You can test if this is the case by plugging the cable into the Pico and using a meter to check for continuity between `TP2` and `TP3` on the Pico. If there is continuity you have a cable like this. Cut the data lines on a normal USB cable as an option.
 <br clear="left"/>
 
 ### Power-In Header:
