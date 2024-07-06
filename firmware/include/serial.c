@@ -172,8 +172,11 @@ void postSerialMouse() {
     packet[1] = ( 0x00 | (mouse_data.mpkt.x & 0x3F)); 
     packet[2] = ( 0x00 | (mouse_data.mpkt.y & 0x3F));
 
+    // according to: https://sourceforge.net/p/cutemouse/trunk/ci/master/tree/cutemouse/PROTOCOL.TXT
+    // for a wheel mouse, the middle button should be reported in bit 0x10
+    // for a 3-button mouse, the middle button should be reported in bit 0x20
     if ( mouse_data.persistent.mousetype == WHEELBTN ){         // Add Wheel Data + Third Button
-        packet[3] = (0x00 | (mouse_data.mpkt.middle ? 0x20 : 0) | (-mouse_data.mpkt.wheel & 0x0f));
+        packet[3] = (0x00 | (mouse_data.mpkt.middle ? 0x10 : 0) | (-mouse_data.mpkt.wheel & 0x0f));
         serial_putc(packet,  3);
     }
     else if ( mouse_data.persistent.mousetype == THREEBTN ){    // Add Third Button
