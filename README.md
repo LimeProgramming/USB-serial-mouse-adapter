@@ -209,6 +209,12 @@ The default mouse settings can be edited in `default_config.h` prior to compilat
 
 The build environment is a normal PicoSDK setup, there are several guides out the for both Linux and Windows.  From experience the setup is easier in Linux. However there is one important thing you need to know:
 
-**PicoSDK version 1.3.0**
-The version of TinyUSB used in this project was customized. The customized version of TinyUSB can be found in the firmware folder. If you want to compile the firmware yourself you will need to replace the stock TinyUSB with the customized version found here
+**PicoSDK Version 1.5.1**
+Previous Versions of this project required a customized version of TinyUSB, since then TinyUSB has implemented improved USB HUB and Hosting functions so the customized TinyUSB is no longer required. 
 
+# Known Issues
+**USB Hubs**
+Due to the pico having a USB 1.1 host or TinyUSB not using hubs correctly, this project struggles with hub compatibility. 
+A hub which should work but I have not texted can be found here: https://www.olimex.com/Products/USB-Modules/USB-NeoHub/open-source-hardware 
+
+Personally I use an amazon basics 4 port USB2.0 hub and it works perfectly.

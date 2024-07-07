@@ -1,2 +1,0 @@
-mcu:MSP430x5xx
-mcu:SAMD11

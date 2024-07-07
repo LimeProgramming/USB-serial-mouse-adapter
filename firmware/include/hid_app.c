@@ -25,15 +25,24 @@ static uint8_t const keycode2ascii[128][2] =  { HID_KEYCODE_TO_ASCII };
 
 // ==================================================
 // ---------- This is executed when a new device is mounted
-void tuh_hid_mount_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* desc_report, uint16_t desc_len)
-{
+void tuh_hid_mount_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* desc_report, uint16_t desc_len) {
+
+    // I don't know, seems to help reduce crashing a bit or might be my imagination.
+    __dsb();
+
     switch ( tuh_hid_interface_protocol(dev_addr, instance) ) 
     {
         case HID_ITF_PROTOCOL_MOUSE:
 
-            gpio_put(LED_ALERT, 1);     // Turn on Alert LED
+            // If this is our first mouse
+            if ( mouse_data.mouse_count == 0 ) {    gpio_put(LED_ALERT, 1); };  // Turn on Alert LED
 
             ++mouse_data.mouse_count;   // Increment our mouse counter
+
+            // ========== We want to talk to this USB device ==========
+            // Manually tell TinyUSB that we do actually want data from the connected USB device
+            // I guess only weirdos want their connected USB device to do something ¯\_(ツ)_/¯
+            tuh_hid_receive_report(dev_addr, instance);
             
         break;
 
@@ -41,6 +50,11 @@ void tuh_hid_mount_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* desc_re
 
         // Process HID Report and hope it's a mouse
         case HID_ITF_PROTOCOL_NONE:    
+
+            // Try forcing the device to use the boot protocol.
+            // I'm not convinced that this makes a real difference and that this is more like praying to the USB gods which are too busy making yet another type of USB-C to actually make keyboards work properly.
+            tuh_hid_set_report(dev_addr, instance, 0, HID_REPORT_TYPE_OUTPUT, (void*)(HID_PROTOCOL_BOOT), 1);
+
             // By default host stack will use activate boot protocol on supported interface.
             hid_info[instance].report_count = tuh_hid_parse_report_descriptor(hid_info[instance].report_info, MAX_HID_REPORT, desc_report, desc_len);
 
@@ -60,10 +74,8 @@ void tuh_hid_mount_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* desc_re
     // ---------- Print out the type of device connected
     const char* protocol_str[] = { "None", "Keyboard", "Mouse" };
     const uint8_t itf_protocol = tuh_hid_interface_protocol(dev_addr, instance);
-    printf("HID device with address %d, instance %d, protocol %d, is a %s, has mounted.\r\n", dev_addr, instance, itf_protocol, protocol_str[itf_protocol]); 
-
-    // ---------- Print out for bad USB device.
-    if ( !claim_endpoint ) { printf("Error: cannot request to receive report\r\n"); }
+    printf("HID device with address %d, instance %d, protocol %d, is a %s, has mounted.\r\n", dev_addr, instance, itf_protocol, protocol_str[itf_protocol]);
+    fflush(stdout); 
 
     #endif
 
@@ -72,8 +84,11 @@ void tuh_hid_mount_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* desc_re
 
 // ==================================================
 // ---------- This is executed when a device is unmounted
-void tuh_hid_umount_cb(uint8_t dev_addr, uint8_t instance)
-{   
+void tuh_hid_umount_cb(uint8_t dev_addr, uint8_t instance) {
+
+    // I don't know, seems to help reduce crashing a bit or might be my imagination.
+    __dsb();
+
     switch ( tuh_hid_interface_protocol(dev_addr, instance) )
     {
         case HID_ITF_PROTOCOL_MOUSE:
@@ -100,10 +115,15 @@ void tuh_hid_report_received_cb(uint8_t dev_addr, uint8_t instance, uint8_t cons
 {   
     switch (tuh_hid_interface_protocol(dev_addr, instance)) 
     {   
-         // Process Mouse Report
+        // ==========  Handle Mouse Reports ==========
         case HID_ITF_PROTOCOL_MOUSE:   
-            process_mouse_report((hid_mouse_report_t const*) report );
-            break;
+            // If the serial terminal is not open
+            if ( mouse_data.serial_state > 0 ) {  break; };
+
+            process_mouse_report( (hid_mouse_report_t const*) report );
+
+        break;
+
 
         // Throw Away Keyboard Reports
         case HID_ITF_PROTOCOL_KEYBOARD: 
@@ -117,13 +137,14 @@ void tuh_hid_report_received_cb(uint8_t dev_addr, uint8_t instance, uint8_t cons
 
     // Manually tell TinyUSB that we do actually want data from the connected USB device
     // I guess only weirdos want their conneced USB device to do something ¯\_(ツ)_/¯
-    const bool claim_endpoint = tuh_hid_receive_report(dev_addr, instance);
+    bool claim_endpoint = tuh_hid_receive_report(dev_addr, instance);
 
+    // ===== Dev DEBUG Printout =====
     #if DEBUG > 0
 
-    // ---------- Print out for bad USB device.
-    if ( !claim_endpoint ) {
+    if ( !claim_endpoint ) {    // ----- Print out for bad USB device.
         printf("Error: cannot request to receive report\r\n");
+        fflush(stdout);
     }
 
     #endif
