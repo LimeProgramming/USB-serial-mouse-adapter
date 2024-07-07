@@ -945,9 +945,10 @@ void reset_cycle() {
 
     case MO_MVT_COAST:
       mouse_data.rmpkt.wheel = 0;       // Reset Buffered wheel movement
-      mouse_data.mouse_movt_ticker = 0; // Reset mouse poll count
     break;
   }
+  
+  mouse_data.mouse_movt_ticker = 0; // Reset mouse poll count
 
   return;
 }
@@ -1004,7 +1005,11 @@ void update_mousepacket()
     case MO_MVT_AVERAGE:
 
       // Avoid a Div by zero err
-      if ( mouse_data.mouse_movt_ticker == 0 ) { break; }
+      if ( mouse_data.mouse_movt_ticker == 0 ) { 
+        retpkt.x = 0;
+        retpkt.y = 0;
+        break;
+      }
 
       // Divide the total mouse XY axis values by number of mouse updates
       retpkt.x = ( int16_t ) round( mouse_data.rmpkt.x / mouse_data.mouse_movt_ticker );
