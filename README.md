@@ -211,6 +211,7 @@ The build environment is a normal PicoSDK setup, there are several guides out th
 
 **PicoSDK Version 1.5.1**
 Previous Versions of this project required a customized version of TinyUSB, since then TinyUSB has implemented improved USB HUB and Hosting functions so the customized TinyUSB is no longer required. 
+However, TinyUSB version 16 is recommended for the scroll wheel to work more reliably. 
 
 # Known Issues
 **USB Hubs**
