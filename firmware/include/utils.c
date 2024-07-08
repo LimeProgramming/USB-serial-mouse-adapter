@@ -2,7 +2,6 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "bsp/board.h"
 #include "pico/stdlib.h"
 #include "hardware/sync.h"
 #include "hardware/gpio.h"
@@ -10,6 +9,13 @@
 #include "hardware/flash.h"
 #include "pico/binary_info.h"
 #include "hardware/watchdog.h"
+
+// Needed to account for update in tinyUSB
+#if __has_include("bsp/board_api.h")
+#include "bsp/board_api.h"
+#else
+#include "bsp/board.h"
+#endif
 
 #include "utils.h"
 #include "core_1.h"

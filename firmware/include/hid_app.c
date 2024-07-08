@@ -2,8 +2,14 @@
 #include "pico.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include "bsp/board.h"
 #include "pico/stdlib.h"
+
+// Needed to account for update in tinyUSB
+#if __has_include("bsp/board_api.h")
+#include "bsp/board_api.h"
+#else
+#include "bsp/board.h"
+#endif
 
 #include "utils.h"
 #include "ctypes.h"
@@ -71,11 +77,11 @@ void tuh_hid_mount_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* desc_re
 
     #if DEBUG > 0
 
-    // ---------- Print out the type of device connected
-    const char* protocol_str[] = { "None", "Keyboard", "Mouse" };
-    const uint8_t itf_protocol = tuh_hid_interface_protocol(dev_addr, instance);
-    printf("HID device with address %d, instance %d, protocol %d, is a %s, has mounted.\r\n", dev_addr, instance, itf_protocol, protocol_str[itf_protocol]);
-    fflush(stdout); 
+        // ---------- Print out the type of device connected
+        const char* protocol_str[] = { "None", "Keyboard", "Mouse" };
+        const uint8_t itf_protocol = tuh_hid_interface_protocol(dev_addr, instance);
+        printf("HID device with address %d, instance %d, protocol %d, is a %s, has mounted.\r\n", dev_addr, instance, itf_protocol, protocol_str[itf_protocol]);
+        fflush(stdout); 
 
     #endif
 
@@ -105,7 +111,8 @@ void tuh_hid_umount_cb(uint8_t dev_addr, uint8_t instance) {
     }
 
     #if DEBUG
-    printf("HID device with address %d, instance %d was unmounted.\r\n", dev_addr, instance);
+        printf("HID device with address %d, instance %d was unmounted.\r\n", dev_addr, instance);
+        fflush(stdout);
     #endif
 }
 
@@ -118,7 +125,7 @@ void tuh_hid_report_received_cb(uint8_t dev_addr, uint8_t instance, uint8_t cons
         // ==========  Handle Mouse Reports ==========
         case HID_ITF_PROTOCOL_MOUSE:   
             // If the serial terminal is not open
-            if ( mouse_data.serial_state > 0 ) {  break; };
+            if ( mouse_data.serial_state > 0 ) {  break; }
 
             process_mouse_report( (hid_mouse_report_t const*) report );
 
@@ -132,6 +139,9 @@ void tuh_hid_report_received_cb(uint8_t dev_addr, uint8_t instance, uint8_t cons
         // Process Generic Report
         default:                        
             process_generic_report(dev_addr, instance, report, len);
+
+            printf("report222\n");
+            fflush(stdout);
             break;
     }
 

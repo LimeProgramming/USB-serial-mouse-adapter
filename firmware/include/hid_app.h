@@ -1,8 +1,15 @@
 #ifndef HID_APP_H_
 #define HID_APP_H_
 
-#include "bsp/board.h"
+
 #include "tusb.h"
+
+// Needed to account for update in tinyUSB
+#if __has_include("bsp/board_api.h")
+#include "bsp/board_api.h"
+#else
+#include "bsp/board.h"
+#endif
 
 #define MAX_HID_REPORT  4
 

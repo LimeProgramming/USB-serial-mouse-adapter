@@ -1,11 +1,17 @@
 #include "tusb.h"
 #include <stdio.h>
-#include "bsp/board.h"
 #include "pico/stdlib.h"
 #include "hardware/gpio.h"
 #include "hardware/uart.h"
 #include "hardware/timer.h"
 #include "pico/multicore.h"
+
+// Needed to account for update in tinyUSB
+#if __has_include("bsp/board_api.h")
+#include "bsp/board_api.h"
+#else
+#include "bsp/board.h"
+#endif
 
 #include "include/utils.h"
 #include "include/core_1.h"
@@ -35,6 +41,11 @@ int main(){
     // Mild underclock
     set_sys_clock_khz(125000, true);
 
+    // If we're using an updated version of TinyUSB then enable the scrollwheel
+    #if __has_include("bsp/board_api.h")
+      tuh_hid_set_default_protocol(HID_PROTOCOL_REPORT);
+    #endif
+    
     stdio_init_all();           // pico SDK
     board_init();               // init board from TinyUSB
     tusb_init();                // init TinyUSB

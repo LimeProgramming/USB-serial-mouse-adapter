@@ -7,7 +7,8 @@ set(CMAKE_CXX_STANDARD 17)
 
 # initalize pico_sdk from installed location
 # (note this can come from environment, CMake cache etc)
-set(PICO_SDK_PATH "C:/Pico/pico-sdk-1.5.1")
+#set(PICO_SDK_PATH "C:/Pico/pico-sdk-1.5.1")
+#set(PICO_TINYUSB_PATH "C:/Pico/tinyusb-0.16.0")
 
 # For TinyUSB
 set(FAMILY rp2040)
