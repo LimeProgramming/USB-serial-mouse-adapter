@@ -1,0 +1,1 @@
+Replace stock c:\windows\system\mouse.drv with the speed of your choosing.
